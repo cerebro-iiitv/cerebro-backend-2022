@@ -1,4 +1,4 @@
-<!-- <p align="center"><img src="templates/Logo-02.png" align="center" width="225"></p> -->
+<p align="center"><img src="templates/Logo-02.png" align="center" width="225"></p>
 <h1 align="center">cerebro-backend-2022</h1>
 
 <h4 align="center"> Website for Cerebro 2021 powered by
