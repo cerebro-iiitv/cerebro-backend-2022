@@ -1,31 +1,21 @@
 [[source]]
-name = "pypi"
 url = "https://pypi.org/simple"
 verify_ssl = true
-
-[dev-packages]
+name = "pypi"
 
 [packages]
 django = "*"
 djangorestframework = "*"
-django-cors-headers = "*"
 python-decouple = "*"
+django-cors-headers = "*"
 django-phonenumber-field = {extras = ["phonenumbers"], version = "*"}
-phonenumbers = "*"
+six = "*"
+requests = "*"
+pandas = "*"
 pillow = "*"
 whitenoise = "*"
-djangorestframework-simplejwt = "*"
-requests = "*"
-black = "*"
-serpy = "*"
-six = "*"
-pandas = "*"
-openpyxl = "*"
-xlsxwriter = "*"
-xlrd = "*"
+
+[dev-packages]
 
 [requires]
-python_version = "3.8"
-
-[pipenv]
-allow_prereleases = true
+python_version = "3.10"
