@@ -22,7 +22,11 @@ class Event(models.Model):
     end_time = models.CharField(max_length=100, blank=False)
     rules_doc = models.URLField(blank=True)
     social_media = models.URLField(null=True, blank=True)
-    is_closed = models.BooleanField(default=False)
+    registration_closed = models.BooleanField(default=False)
+    registration_attributes = models.JSONField(blank=True, null=True)
+    submission_required = models.BooleanField(default=False)
+    submission_closed = models.BooleanField(default=False)
+    submission_attributes = models.JSONField(blank=True, null=True)
 
     def __str__(self):
         return self.title
