@@ -4,16 +4,43 @@ from six import MAXSIZE, python_2_unicode_compatible
 from django.utils.translation import gettext_lazy as _
 from django.contrib.auth.models import User
 from rest_framework.authtoken.models import Token
+from accounts.managers import AccountManager
+from django.contrib.auth.models import PermissionsMixin
+from django.contrib.auth.base_user import AbstractBaseUser
+from django.core.mail import send_mail
 
 
-class Account(models.Model):
-    user = models.OneToOneField(User, on_delete=models.CASCADE)
-    mobile_number = models.CharField(max_length=12, blank=True)
-    profile_pic = models.URLField(blank=True)
-    institute = models.CharField(max_length=225, blank=True, null=True)
+class Account(AbstractBaseUser, PermissionsMixin):
+    first_name = models.CharField(_('first name'), max_length=30)
+    last_name = models.CharField(_('last name'), max_length=30)
+    is_active = models.BooleanField(_('active'), default=True)
+    email = models.EmailField(_('email address'), unique=True)
+    is_staff = models.BooleanField(_('staff status'), default=False)
+    mobile_number = models.CharField(max_length=13)
+    proof = models.URLField()
+    institute_name = models.CharField(max_length=225)
+    address = models.CharField(max_length=225, blank=True, null=True)
+    degree = models.CharField(max_length=30)
+    
+    USERNAME_FIELD = 'email'
+    REQUIRED_FIELDS = []
+    objects = AccountManager()
+    class Meta:
+        verbose_name = _('user')
+        verbose_name_plural = _('users')
+
+    def get_full_name(self):
+        full_name = '%s %s' % (self.first_name, self.last_name)
+        return full_name.strip()
+
+    def get_short_name(self):
+        return self.first_name
+
+    def email_user(self, subject, message, from_email=None, **kwargs):
+        send_mail(subject, message, from_email, [self.email], **kwargs)
 
     def __str__(self):
-        return self.user.first_name + " " + self.user.last_name
+        return self.first_name + ' ' + self.last_name + ' (' + self.email + ')'
 
 
 class AuthToken(Token):
@@ -21,7 +48,7 @@ class AuthToken(Token):
 
     # Relation to user is a ForeignKey, so each user can have more than one token
     user = models.ForeignKey(
-        User,
+        Account,
         related_name="auth_tokens",
         on_delete=models.CASCADE,
         verbose_name=_("User"),

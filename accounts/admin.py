@@ -11,15 +11,13 @@ class AccountAdmin(admin.ModelAdmin):
     # )
     list_display = (
         "id",
-        "user",
         "mobile_number",
     )
     list_display_links = (
         "id",
-        "user",
         "mobile_number",
     )
-    raw_id_fields = ("user",)
+
     search_fields = ("user", "mobile_number")
 
 
