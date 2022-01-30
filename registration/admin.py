@@ -26,10 +26,11 @@ class TeamParticipationAdmin(admin.ModelAdmin):
     list_display = (
         "id",
         "event",
+        "team_name",
+        "team_captain",
         "current_size",
         "is_full",
         "team_code",
-        "registration_data",
         "submission_data"
     )
     raw_id_fields = ("event",)
