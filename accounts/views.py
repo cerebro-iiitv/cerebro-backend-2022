@@ -1,13 +1,16 @@
 import requests
 
+from rest_framework import generics
 from django.contrib.auth.models import User
-from django.shortcuts import render
+from django.shortcuts import render, redirect
 from rest_framework import permissions, status
 from rest_framework.exceptions import MethodNotAllowed
 from rest_framework.response import Response
 from rest_framework.utils import json
 from rest_framework.views import APIView
+from django.contrib.auth import login as auth_login
 from rest_framework.viewsets import ModelViewSet
+from rest_framework.permissions import AllowAny, IsAuthenticated
 
 from accounts.authentication import MultipleTokenAuthentication
 from accounts.models import Account, AuthToken
@@ -16,8 +19,20 @@ from accounts.serializers import AccountDashboardSerializer, AccountSerializer
 
 def index(request):
     return render(request, "accounts/base.html")
+    
+class SignUpView(APIView):
+    permission_classes = [AllowAny]
 
+    def post(self, request):
+        serializer = AccountSerializer(data=request.data)
 
+        if not serializer.is_valid():
+            return Response(serializer.errors)
+
+        user = Account.objects.create_user(**serializer.validated_data)
+
+        return Response({"status": "User created successfully"}, status=status.HTTP_201_CREATED)
+    
 class AccountViewSet(ModelViewSet):
     serializer_class = AccountSerializer
     queryset = Account.objects.all()

@@ -5,12 +5,9 @@ from registration.models import TeamMember
 
 
 class AccountSerializer(serializers.ModelSerializer):
-    
-
     class Meta:
         model = Account
-        fields = "__all__"
-
+        fields = ["first_name", "last_name", "email", "mobile_number", "institute_name","address","degree","password","proof"]
 
 class RegisteredEventSerializer(serializers.ModelSerializer):
     event_name = serializers.CharField(source="event.title")
