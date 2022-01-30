@@ -4,11 +4,16 @@ from django.urls import path
 from rest_framework.routers import SimpleRouter
 from rest_framework.urlpatterns import format_suffix_patterns
 
-from registration.views import IndividualRegistrationViewSet, TeamRegistrationViewSet
+from registration.views import (
+    IndividualRegistrationViewSet,
+    TeamRegistrationViewSet,
+    TeamMemberViewSet
+)
 
 router = SimpleRouter()
 router.register("individual-registration", IndividualRegistrationViewSet, basename="api-individual-registration")
-router.register("createteam", TeamRegistrationViewSet, basename="api-create-team")
+router.register("team", TeamRegistrationViewSet, basename="api-create-team")
+router.register("teammember", TeamMemberViewSet, basename="api-team-member")
 # from registration.views import TeamRegistrationViewSet, CsvGenerate, TeamData, index
 
 # router = SimpleRouter()
