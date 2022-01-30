@@ -88,13 +88,14 @@ class TeamRegistrationViewSet(ModelViewSet):
     def create(self, request, *args, **kwargs):
         serializer = self.serializer_class(data=request.data)
 
-        if not serializer.is_valid:
+        if not serializer.is_valid():
+            print(serializer.errors)
             return Response(serializer.error_messages, status=status.HTTP_400_BAD_REQUEST)
 
         event = serializer.validated_data.get("event")
 
         if event.team_size == 1:
-            return Response({"Error": f"{event.name} is not a team event"})
+            return Response({"Error": f"{event.title} is not a team event"})
 
         # Verify if the person creating team is already not a part of some other team of the same event
         if TeamMember.objects.filter(event=event, account=request.user).exists():
@@ -103,7 +104,7 @@ class TeamRegistrationViewSet(ModelViewSet):
         # Verify if team name is unique
         team_name = serializer.validated_data.get("team_name")
         if TeamParticipation.objects.filter(event=event, team_name=team_name).exists():
-            return Response({"Error": "Team name already taken in the event f{event.title}"}, status=status.HTTP_400_BAD_REQUEST)
+            return Response({"Error": f"Team name already taken in the event {event.title}"}, status=status.HTTP_400_BAD_REQUEST)
 
         #While registering one should not provide submission details
         if "submission_data" in serializer.validated_data.keys():
@@ -139,6 +140,7 @@ class TeamRegistrationViewSet(ModelViewSet):
 
         team_captain["team"] = team
         team_captain["account"] = request.user
+        team_captain["event"] = event
 
         # Creating team captain object
         team_captain = TeamMember.objects.create(**team_captain)
@@ -168,9 +170,10 @@ class TeamMemberViewSet(ModelViewSet):
             return Response(serializer.error_messages, status=status.HTTP_400_BAD_REQUEST)
 
         # Validating team code
-        team_code = serializer.validated_data.get("team_code")
+        team_code = serializer.validated_data.get("team").get("team_code")
+        print(team_code)
         try:
-            team = TeamParticipation.objects.filter(team_code=team_code)
+            team = TeamParticipation.objects.get(team_code=team_code)
         except TeamParticipation.DoesNotExist:
             return Response({"error": "Invalid team code"}, status=status.HTTP_400_BAD_REQUEST)
 
@@ -185,7 +188,7 @@ class TeamMemberViewSet(ModelViewSet):
             return Response({"error": f"User is already a part of a team in {event.title}"})
 
         # Check if the team is full or not
-        if team.isfull:
+        if team.is_full:
             return Response({"error": "Team is already full"}, status=status.HTTP_400_BAD_REQUEST)
 
         # Validating registration data provided by the user
@@ -197,10 +200,11 @@ class TeamMemberViewSet(ModelViewSet):
             return Response(error_message, status=status.HTTP_400_BAD_REQUEST)
 
         data = serializer.validated_data
-        data.pop("team_code")
+        data.pop("team")
 
         data["account"] = request.user
         data["event"] = event
+        data["team"] = team
 
         # Creating team member object
         team_member = TeamMember.objects.create(**data)
@@ -214,7 +218,7 @@ class TeamMemberViewSet(ModelViewSet):
         team.save()
 
         return Response(
-            {"success": f"{request.user.name} registered to team {team.team_name} in event {event.title}"},
+            {"success": f"{request.user.first_name} {request.user.last_name} registered to team {team.team_name} in event {event.title}"},
             status=status.HTTP_201_CREATED
         )
 
