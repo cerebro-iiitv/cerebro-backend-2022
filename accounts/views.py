@@ -19,17 +19,8 @@ from accounts.serializers import AccountDashboardSerializer, AccountSerializer
 
 def index(request):
     return render(request, "accounts/base.html")
-
-
-class AccountListView(generics.ListAPIView):
-    permission_classes = [IsAuthenticated]
-    lookup_field = 'pk'
-    serializer_class = AccountSerializer
     
-    def get_queryset(self):
-        return Account.objects.all()
-    
-class SignUpApi(APIView):
+class SignUpView(APIView):
     permission_classes = [AllowAny]
 
     def post(self, request):
@@ -41,14 +32,6 @@ class SignUpApi(APIView):
         user = Account.objects.create_user(**serializer.validated_data)
 
         return Response({"status": "User created successfully"}, status=status.HTTP_201_CREATED)
-    
-    
-class AccountCreateView(generics.CreateAPIView):
-    permission_classes = [IsAuthenticated]
-    lookup_field = 'pk'
-    serializer_class = AccountSerializer
-    def get_queryset(self):
-        return Account.objects.all()
     
 class AccountViewSet(ModelViewSet):
     serializer_class = AccountSerializer
