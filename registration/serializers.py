@@ -17,7 +17,7 @@ class TeamMemberSerializer(serializers.ModelSerializer):
         read_only_fields = ["account", "event", "team"]
 
 class TeamParticipationSerializer(serializers.ModelSerializer):
-    team_creator = TeamMemberSerializer()
+    team_captain = TeamMemberSerializer()
     class Meta:
         model = TeamParticipation
         fields = "__all__" 
