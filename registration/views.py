@@ -41,35 +41,21 @@ class IndividualRegistrationViewSet(ModelViewSet):
     authentication_classes = [MultipleTokenAuthentication, TokenAuthentication]
 
     def create(self, request, *args, **kwargs):
-        if not request.user.is_authenticated:
-            return Response(
-                {"Error": "Permission denied"}, status=status.HTTP_401_UNAUTHORIZED
-            )
 
-        #Checking that the request.user is trying to register him/her self or not
-        account_id = request.data.get("account")
-        try:
-            account = Account.objects.get(id = account_id)
-            if account.user != request.user:
-                return Response({"Error": "Permission denied"}, status=status.HTTP_403_FORBIDDEN)
-        except Account.DoesNotExist:
-            return Response({"Error": "Permission denied"}, status=status.HTTP_403_FORBIDDEN)
-        
         serializer = self.serializer_class(data=request.data)
 
         if not serializer.is_valid():
             return Response(serializer.error_messages, status=status.HTTP_400_BAD_REQUEST)
 
         event = serializer.validated_data.get("event")
-        account = serializer.validated_data.get("account")
 
         # Checking if given event is individual event or not
         if event.team_size != 1:
-            return Response({"Error": "Event f{event.title} is a team based event"}, status=status.HTTP_400_BAD_REQUEST)
+            return Response({"Error": f"Event {event.title} is a team based event"}, status=status.HTTP_400_BAD_REQUEST)
 
         # Checking if user is alredy registered to the event:
         if IndividualParticipation.objects.filter(account=request.user, event=event).exists():
-            return Response({"error": "User already registered in event f{event.title}"}, status=status.HTTP_400_BAD_REQUEST)
+            return Response({"error": f"User already registered in event {event.title}"}, status=status.HTTP_400_BAD_REQUEST)
 
         # While registering one should not provide submission details
         if "submission_data" in serializer.validated_data.keys():
@@ -83,9 +69,14 @@ class IndividualRegistrationViewSet(ModelViewSet):
         if error_message is not None:
             return Response(error_message, status=status.HTTP_400_BAD_REQUEST)
 
-        self.perform_create(serializer)
-        headers = self.get_success_headers(serializer.data)
-        return Response(serializer.data, status=status.HTTP_201_CREATED, headers=headers)
+        data = serializer.validated_data
+
+        data["account"] = request.user
+
+        participant = IndividualParticipation.objects.create(**data)
+        participant.save()
+        participant_serialized = IndividualParticipationSerializer(participant)
+        return Response(participant_serialized.data, status=status.HTTP_201_CREATED)
 
 
 class TeamRegistrationViewSet(ModelViewSet):
@@ -95,20 +86,6 @@ class TeamRegistrationViewSet(ModelViewSet):
     authentication_classes = [MultipleTokenAuthentication, TokenAuthentication]
 
     def create(self, request, *args, **kwargs):
-        # if not request.user.is_authenticated:
-        #     return Response(
-        #         {"Error": "Permission denied"}, status=status.HTTP_401_UNAUTHORIZED
-        #     )
-        
-        # team_creator_id = request.data.get("team_creator")
-
-        # try:
-        #     account = Account.objects.get(id = team_creator_id)
-        #     if account.user != request.user:
-        #         return Response({"Error": "Permission denied"}, status=status.HTTP_403_FORBIDDEN)    
-        # except Account.DoesNotExist:
-        #     return Response({"Error": "Invalid user id"}, status=status.HTTP_400_BAD_REQUEST)
-
         serializer = self.serializer_class(data=request.data)
 
         if not serializer.is_valid:
@@ -120,7 +97,7 @@ class TeamRegistrationViewSet(ModelViewSet):
             return Response({"Error": f"{event.name} is not a team event"})
 
         # Verify if the person creating team is already not a part of some other team of the same event
-        if TeamMember.objects.filter(event=event, account=account).exists():
+        if TeamMember.objects.filter(event=event, account=request.user).exists():
             return Response({"Error": "Given user is already a memeber of a team in this event"}, status=status.HTTP_400_BAD_REQUEST)     
 
         # Verify if team name is unique
@@ -143,32 +120,28 @@ class TeamRegistrationViewSet(ModelViewSet):
         data = serializer.validated_data
 
         # Extract participation details of team creator
-        team_creator = data.pop("team_creator")
-
-        team_creator_event = team_creator.get("event")
-        if team_creator_event != event:
-            return Response({"Error": "Event for team and team captain are not same"}, status=status.HTTP_400_BAD_REQUEST)
+        team_captain = data.pop("team_captain")
 
         # Validating registration data provided by the team captain
         registration_attributes = event.registration_attributes
-        registration_data = team_creator.get("registration_data", None)
+        registration_data = team_captain.get("registration_data", None)
         error_message = validate_registration_data(registration_attributes, registration_data)
 
         if error_message is not None:
             return Response(error_message, status=status.HTTP_400_BAD_REQUEST)
 
         data["team_code"] = team_code
-        data["team_creator"] = request.user
+        data["team_captain"] = request.user
 
         # Creating team
         team = TeamParticipation.objects.create(**data)
         team.save()
 
-        team_creator["team"] = team
-        team_creator["account"] = request.user
+        team_captain["team"] = team
+        team_captain["account"] = request.user
 
         # Creating team captain object
-        team_captain = TeamMember.objects.create(**team_creator)
+        team_captain = TeamMember.objects.create(**team_captain)
         team_captain.save()
 
         return Response(
