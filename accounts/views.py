@@ -8,13 +8,13 @@ from rest_framework.exceptions import MethodNotAllowed
 from rest_framework.response import Response
 from rest_framework.utils import json
 from rest_framework.views import APIView
-from django.contrib.auth import login as auth_login
+from django.contrib.auth import authenticate, login, logout
 from rest_framework.viewsets import ModelViewSet
 from rest_framework.permissions import AllowAny, IsAuthenticated
 
 from accounts.authentication import MultipleTokenAuthentication
 from accounts.models import Account, AuthToken
-from accounts.serializers import AccountDashboardSerializer, AccountSerializer
+from accounts.serializers import AccountDashboardSerializer, AccountSerializer, LoginSerializer
 
 
 def index(request):
@@ -58,6 +58,49 @@ class DashboardViewSet(ModelViewSet):
             return Response(
                 {"Error": "Permission Denied"}, status=status.HTTP_401_UNAUTHORIZED
             )
+
+class LoginView(APIView):
+    permission_classes = [AllowAny]
+
+    def post(self, request):
+        serializer = LoginSerializer(data = request.data)
+
+        if not serializer.is_valid():
+            return Response(serializer.errors)
+
+        email = serializer.validated_data.get("email")
+        password = serializer.validated_data.get("password")
+
+        user = authenticate(email=email, password=password)
+
+        if not user:
+            return Response({"status": "Email id or password incorrect"}, status=status.HTTP_400_BAD_REQUEST)
+
+        login(request, user)
+
+        token = AuthToken.objects.create(user=user)
+
+        return Response(
+                {
+                    "status": "User logged in successfully", 
+                    "Token": str(token)
+                },
+                status=status.HTTP_200_OK
+            )
+
+
+class LogoutView(APIView):
+    permission_classes = [permissions.IsAuthenticated]
+    authentication_classes = [MultipleTokenAuthentication]
+    http_method_names = ["get"]
+
+    def get(self, request, *args, **kwargs):
+        if request.META.get("HTTP_AUTHORIZATION") is not None:
+            _, token = request.META.get("HTTP_AUTHORIZATION").split(" ")
+            AuthToken.objects.get(key=token).delete()
+            return Response({"Success": "Logout"}, status=status.HTTP_200_OK)
+        else:
+            return Response({"Error": "Token not found!"}, status=status.status.HTTP_404_NOT_FOUND)
 
 
 class GoogleLogin(APIView):
@@ -112,15 +155,3 @@ class GoogleLogin(APIView):
         return Response(response, status=status.HTTP_200_OK)
 
 
-class Logout(APIView):
-    permission_classes = [permissions.IsAuthenticated]
-    authentication_classes = [MultipleTokenAuthentication]
-    http_method_names = ["get"]
-
-    def get(self, request, *args, **kwargs):
-        if request.META.get("HTTP_AUTHORIZATION") is not None:
-            _, token = request.META.get("HTTP_AUTHORIZATION").split(" ")
-            AuthToken.objects.get(key=token).delete()
-            return Response({"Success": "Logout"}, status=status.HTTP_200_OK)
-        else:
-            return Response({"Error": "Token not found!"}, status=status.status.HTTP_404_NOT_FOUND)

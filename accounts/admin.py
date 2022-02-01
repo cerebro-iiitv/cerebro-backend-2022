@@ -22,11 +22,11 @@ class AccountAdmin(admin.ModelAdmin):
 
 
 class AuthTokenAdmin(admin.ModelAdmin):
-    readonly_fields = (
-        "id",
-        "user",
-        "key",
-    )
+    # readonly_fields = (
+    #     "id",
+    #     "user",
+    #     "key",
+    # )
     list_display = (
         "id",
         "user",
