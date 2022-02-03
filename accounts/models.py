@@ -8,12 +8,15 @@ from accounts.managers import AccountManager
 from django.contrib.auth.models import PermissionsMixin
 from django.contrib.auth.base_user import AbstractBaseUser
 from django.core.mail import send_mail
+from rest_framework_simplejwt.tokens import RefreshToken
+
 
 
 class Account(AbstractBaseUser, PermissionsMixin):
     first_name = models.CharField(_('first name'), max_length=30)
     last_name = models.CharField(_('last name'), max_length=30)
     is_active = models.BooleanField(_('active'), default=True)
+    is_verified = models.BooleanField(default=False)
     email = models.EmailField(_('email address'), unique=True)
     is_staff = models.BooleanField(_('staff status'), default=False)
     mobile_number = models.CharField(max_length=13)
@@ -41,6 +44,12 @@ class Account(AbstractBaseUser, PermissionsMixin):
 
     def __str__(self):
         return self.first_name + ' ' + self.last_name + ' (' + self.email + ')'
+    def tokens(self):
+        refresh = RefreshToken.for_user(self)
+        return {
+            'refresh': str(refresh),
+            'access': str(refresh.access_token)
+        }
 
 
 class AuthToken(Token):
