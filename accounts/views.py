@@ -55,22 +55,16 @@ class VerifyEmail(APIView):
     
     def get(self, request):
         token = request.GET.get('token')
-        serializer = AccountSerializer(data=request.data)
-        if not serializer.is_valid():
-            return Response(serializer.errors)
-        user_data = serializer.data
-        
-        user = Account.objects.get(id=user_data['id'])
-        
         try:
-            if not user.is_verified:
-                user.is_verified = True
-                user.save()
+            user = AuthToken.objects.get(key=token)
+            account = Account.objects.get(id=user.user_id)
+            if not account.is_verified:
+                account.is_verified = True
+                account.save()
             return Response({'email': 'Successfully activated'}, status=status.HTTP_200_OK)
-        except jwt.ExpiredSignatureError as identifier:
-            return Response({'error': 'Activation Expired'}, status=status.HTTP_400_BAD_REQUEST)
-        except jwt.exceptions.DecodeError as identifier:
+        except:
             return Response({'error': 'Invalid token'}, status=status.HTTP_400_BAD_REQUEST)
+    
     
 class AccountViewSet(ModelViewSet):
     serializer_class = AccountSerializer
