@@ -15,12 +15,9 @@ from rest_framework.permissions import AllowAny, IsAuthenticated
 from accounts.authentication import MultipleTokenAuthentication
 from accounts.models import Account, AuthToken
 from accounts.serializers import AccountDashboardSerializer, AccountSerializer, LoginSerializer,EmailVerificationSerializer
-from rest_framework_simplejwt.tokens import RefreshToken
 from django.contrib.sites.shortcuts import get_current_site
 from django.urls import reverse
 from .utils import Util
-import jwt
-from django.conf import settings
 
 
 def index(request):
