@@ -19,6 +19,13 @@ class RegisteredEventSerializer(serializers.ModelSerializer):
         model = TeamMember
         fields = ["event_name", "team_code", "start_time", "end_time", "id"]
 
+class EmailVerificationSerializer(serializers.ModelSerializer):
+    token = serializers.CharField(max_length=555)
+
+    class Meta:
+        model = Account
+        fields = ['token']
+
 class LoginSerializer(serializers.Serializer):
     email = serializers.EmailField(max_length=255)
     password = serializers.CharField(max_length=64, min_length=7)

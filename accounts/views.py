@@ -14,7 +14,10 @@ from rest_framework.permissions import AllowAny, IsAuthenticated
 
 from accounts.authentication import MultipleTokenAuthentication
 from accounts.models import Account, AuthToken
-from accounts.serializers import AccountDashboardSerializer, AccountSerializer, LoginSerializer
+from accounts.serializers import AccountDashboardSerializer, AccountSerializer, LoginSerializer,EmailVerificationSerializer
+from django.contrib.sites.shortcuts import get_current_site
+from django.urls import reverse
+from .utils import Util
 
 
 def index(request):
@@ -28,10 +31,37 @@ class SignUpView(APIView):
 
         if not serializer.is_valid():
             return Response(serializer.errors)
-
         user = Account.objects.create_user(**serializer.validated_data)
+        user_data = serializer.data
+        useremail = Account.objects.get(email=user_data['email'])
+        token = AuthToken.objects.create(user=user)
+        current_site = get_current_site(request).domain
+        relativeLink = reverse('email-verify')
+        absurl = 'http://'+current_site+relativeLink+"?token="+str(token)
+        email_body = 'Hi ' + user_data['first_name'] + ',\n'\
+            'Click the link below to verify your email \n' + absurl
+        data = {'email_body': email_body, 'to_email': useremail.email,
+                'email_subject': 'Verify your email'}
+        
 
+        Util.send_email(data)
         return Response({"status": "User created successfully"}, status=status.HTTP_201_CREATED)
+    
+class VerifyEmail(APIView):
+    serializer_class = EmailVerificationSerializer
+    
+    def get(self, request):
+        token = request.GET.get('token')
+        try:
+            user = AuthToken.objects.get(key=token)
+            account = Account.objects.get(id=user.user_id)
+            if not account.is_verified:
+                account.is_verified = True
+                account.save()
+            return Response({'email': 'Successfully activated'}, status=status.HTTP_200_OK)
+        except:
+            return Response({'error': 'Invalid token'}, status=status.HTTP_400_BAD_REQUEST)
+    
     
 class AccountViewSet(ModelViewSet):
     serializer_class = AccountSerializer
