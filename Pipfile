@@ -14,6 +14,7 @@ requests = "*"
 pandas = "*"
 pillow = "*"
 whitenoise = "*"
+djangorestframework-simplejwt = "*"
 
 [dev-packages]
 
