@@ -15,6 +15,7 @@ pandas = "*"
 pillow = "*"
 whitenoise = "*"
 djangorestframework-simplejwt = "*"
+gunicorn = "*"
 
 [dev-packages]
 
