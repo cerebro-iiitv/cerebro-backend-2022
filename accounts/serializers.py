@@ -34,6 +34,12 @@ class LoginSerializer(serializers.Serializer):
         fields = "__all__"
 
 
+class ChangePasswordSerializer(serializers.Serializer):
+    model = Account
+    old_password = serializers.CharField(required=True)
+    new_password = serializers.CharField(required=True)
+
+
 class AccountDashboardSerializer(serializers.ModelSerializer):
     user_team = RegisteredEventSerializer(many=True)
     first_name = serializers.CharField(source="user.first_name")
