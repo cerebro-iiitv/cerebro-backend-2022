@@ -11,10 +11,11 @@ from rest_framework.views import APIView
 from django.contrib.auth import authenticate, login, logout
 from rest_framework.viewsets import ModelViewSet
 from rest_framework.permissions import AllowAny, IsAuthenticated
+from django.contrib.auth.tokens import PasswordResetTokenGenerator
 
 from accounts.authentication import MultipleTokenAuthentication
 from accounts.models import Account, AuthToken
-from accounts.serializers import AccountDashboardSerializer, AccountSerializer, LoginSerializer,EmailVerificationSerializer, ChangePasswordSerializer
+from accounts.serializers import AccountDashboardSerializer, AccountSerializer, LoginSerializer,EmailVerificationSerializer, ChangePasswordSerializer, ResetPasswordEmailRequestSerializer
 from django.contrib.sites.shortcuts import get_current_site
 from django.urls import reverse
 from .utils import Util
@@ -49,7 +50,7 @@ class SignUpView(APIView):
     
 class VerifyEmail(APIView):
     serializer_class = EmailVerificationSerializer
-    
+
     def get(self, request):
         token = request.GET.get('token')
         try:
@@ -132,13 +133,40 @@ class LogoutView(APIView):
         else:
             return Response({"Error": "Token not found!"}, status=status.status.HTTP_404_NOT_FOUND)
 
+
+class RequestPasswordResetEmail(generics.GenericAPIView):
+    serializer_class = ResetPasswordEmailRequestSerializer
+    permission_classes = [IsAuthenticated]
+    def post(self, request):
+        serializer = self.serializer_class(data=request.data)
+
+        email = request.data.get('email', '')
+        token = request.GET.get('token')
+        if Account.objects.filter(email=email).exists():
+            user = Account.objects.get(email=email)
+            token = PasswordResetTokenGenerator().make_token(user)
+            current_site = get_current_site(
+                request=request).domain
+            relativeLink = reverse(
+                'password-reset-confirm')
+
+            redirect_url = request.data.get('redirect_url', '')
+            absurl = 'http://'+current_site+relativeLink+"?token="+str(token)
+            email_body = 'Hi,' + '\nThere was a request to change your password!'+ '\nIf you did not make this request then please ignore this email.' '\nOtherwise, use link below to reset your password  \n' + \
+            absurl+"?redirect_url="+redirect_url
+            data = {'email_body': email_body, 'to_email': user.email,
+                    'email_subject': 'Reset your passsword'}
+            Util.send_email(data)
+        return Response({'success': 'We have sent you a link to reset your password'}, status=status.HTTP_200_OK)
+        
+    
 class ChangePasswordView(generics.UpdateAPIView):
     """
     An endpoint for changing password.
     """
     serializer_class = ChangePasswordSerializer
     model = Account
-    permission_classes = (IsAuthenticated,)
+    permission_classes = [permissions.IsAuthenticated]
 
     def get_object(self, queryset=None):
         obj = self.request.user
