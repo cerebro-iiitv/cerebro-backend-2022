@@ -2,8 +2,8 @@ from django.db import models
 
 
 class PDF(models.Model):
-    name = models.CharField(max_length=20, blank=True)
-    pdf = models.FileField(upload_to="docs", blank=True)
+    email = models.CharField(max_length=255)
+    pdf = models.FileField(upload_to="docs")
 
     def __str__(self):
-        return self.name
+        return self.email

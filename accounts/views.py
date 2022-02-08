@@ -1,3 +1,4 @@
+import email
 import requests
 
 from rest_framework import generics
@@ -14,7 +15,10 @@ from rest_framework.permissions import AllowAny, IsAuthenticated
 
 from accounts.authentication import MultipleTokenAuthentication
 from accounts.models import Account, AuthToken
-from accounts.serializers import AccountDashboardSerializer, AccountSerializer
+from accounts.serializers import AccountDashboardSerializer, AccountSerializer, FileUploadSerializer
+from rest_framework.parsers import FormParser, MultiPartParser
+from rest_framework.viewsets import ModelViewSet
+from docs.models import PDF
 
 
 def index(request):
@@ -124,3 +128,24 @@ class Logout(APIView):
             return Response({"Success": "Logout"}, status=status.HTTP_200_OK)
         else:
             return Response({"Error": "Token not found!"}, status=status.status.HTTP_404_NOT_FOUND)
+
+class FileUploadViewSet(ModelViewSet):
+    
+    queryset = PDF.objects.all()
+    serializer_class = FileUploadSerializer
+    parser_classes = (MultiPartParser, FormParser,)
+
+    def perform_create(self,serializer):
+        email = self.request.data.get('email')
+        pdf = self.request.data.get('pdf')
+        
+        obj = serializer.save(email=email,
+                       pdf=pdf)
+        pdf_link = obj.pdf
+        
+        account = Account.objects.get(email=email)
+        account.proof = pdf_link
+        account.save()
+        
+        
+    
