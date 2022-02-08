@@ -12,8 +12,12 @@ urlpatterns = [
     path("login/", views.LoginView.as_view(), name="login"),
     path("logout/", views.LogoutView.as_view(), name="logout"),
     path('email-verify/', views.VerifyEmail.as_view(), name="email-verify"),
-    path('password-reset-confirm/<token>', views.ChangePasswordView.as_view(), name='password-reset-confirm'),
-    path('request-reset-password/', views.RequestPasswordResetEmail.as_view(), name='request-reset-password'),
+    path('request-reset-email/', views.RequestPasswordResetEmail.as_view(),
+         name="request-reset-email"),
+    path('password-reset/<uidb64>/<token>/',
+         views.PasswordTokenCheckAPI.as_view(), name='password-reset-confirm'),
+    path('password-reset-complete', views.SetNewPasswordAPIView.as_view(),
+         name='password-reset-complete')
 ]
 
 urlpatterns = format_suffix_patterns(urlpatterns)
