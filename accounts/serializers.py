@@ -2,7 +2,7 @@ from rest_framework import serializers
 
 from accounts.models import Account
 from registration.models import TeamMember
-
+from docs.models import PDF
 
 class AccountSerializer(serializers.ModelSerializer):
     class Meta:
@@ -43,3 +43,9 @@ class AccountDashboardSerializer(serializers.ModelSerializer):
     class Meta:
         model = Account
         fields = ["first_name", "last_name", "email", "mobile_number", "profile_pic", "user_team"]
+
+class FileUploadSerializer(serializers.HyperlinkedModelSerializer):
+    
+    class Meta:
+        model = PDF
+        fields = ['email','pdf']
