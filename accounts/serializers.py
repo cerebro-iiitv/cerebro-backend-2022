@@ -29,12 +29,6 @@ class EmailVerificationSerializer(serializers.ModelSerializer):
         model = Account
         fields = ['token']
 
-class ResetPasswordEmailRequestSerializer(serializers.Serializer):
-    email = serializers.EmailField(min_length=2)
-
-    class Meta:
-        fields = ['email']
-
 class LoginSerializer(serializers.Serializer):
     email = serializers.EmailField(max_length=255)
     password = serializers.CharField(max_length=64, min_length=7)
@@ -43,7 +37,7 @@ class LoginSerializer(serializers.Serializer):
         fields = "__all__"
 
 
-class ResetPasswordEmailRequestSerializer(serializers.Serializer):
+class ResetPasswordRequestSerializer(serializers.Serializer):
     email = serializers.EmailField(min_length=2)
 
     redirect_url = serializers.CharField(max_length=500, required=False)
