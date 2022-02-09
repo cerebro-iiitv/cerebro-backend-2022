@@ -25,6 +25,7 @@ urlpatterns = [
     path("admin/", admin.site.urls),
     path("account/", include("accounts.urls")),
     path("registration/", include("registration.urls")),
+    path("docs/", include("docs.urls")),
 ]
 
 urlpatterns += router.urls

@@ -18,11 +18,7 @@ from accounts.serializers import AccountDashboardSerializer, AccountSerializer, 
 from django.contrib.sites.shortcuts import get_current_site
 from django.urls import reverse
 from .utils import Util
-from accounts.serializers import AccountDashboardSerializer, AccountSerializer, FileUploadSerializer
-from rest_framework.parsers import FormParser, MultiPartParser
-from rest_framework.viewsets import ModelViewSet
-from docs.models import PDF
-
+from accounts.serializers import AccountDashboardSerializer, AccountSerializer
 
 def index(request):
     return render(request, "accounts/base.html")
@@ -188,22 +184,6 @@ class GoogleLogin(APIView):
         response["access_token"] = str(token)
         return Response(response, status=status.HTTP_200_OK)
     
-class FileUploadViewSet(ModelViewSet):
-    
-    queryset = PDF.objects.all()
-    serializer_class = FileUploadSerializer
-    parser_classes = (MultiPartParser, FormParser,)
 
-    def perform_create(self,serializer):
-        email = self.request.data.get('email')
-        pdf = self.request.data.get('pdf')
-
-        obj = serializer.save(email=email,
-                       pdf=pdf)
-        pdf_link = obj.pdf
-
-        account = Account.objects.get(email=email)
-        account.proof = pdf_link
-        account.save()
 
 
