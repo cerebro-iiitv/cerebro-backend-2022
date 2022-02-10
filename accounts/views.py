@@ -175,8 +175,24 @@ class RequestPasswordReset(generics.GenericAPIView):
     
     def post(self, request):
         serializer = self.serializer_class(data=request.data)
-        email = request.data.get('email', '')
+
+        if not serializer.is_valid():
+            return Response(serializer.error_messages, status=status.HTTP_400_BAD_REQUEST)
         
+        email = serializer.validated_data.get("eamil")
+        print(request.headers)
+        # try:
+        #     # user = User.objects.get(email=email)
+        #     # uidb64 = urlsafe_base64_encode(smart_bytes(user.id))
+        #     # token = AuthToken.objects.get_or_create(user=user).key
+
+        #     # password
+        #     pass
+        # except:
+        #     pass
+
+
+
         if Account.objects.filter(email=email).exists():
             user = Account.objects.get(email=email)
             uidb64 = urlsafe_base64_encode(smart_bytes(user.id))
