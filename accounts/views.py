@@ -181,6 +181,13 @@ class RequestPasswordReset(generics.GenericAPIView):
         
         email = serializer.validated_data.get("eamil")
         print(request.headers)
+
+        return Response(
+            {
+                "Headers": request.headers,
+                "Origin": request.headers['Origin']
+            }
+        )
         # try:
         #     # user = User.objects.get(email=email)
         #     # uidb64 = urlsafe_base64_encode(smart_bytes(user.id))
