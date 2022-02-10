@@ -180,37 +180,18 @@ class RequestPasswordReset(generics.GenericAPIView):
             return Response(serializer.error_messages, status=status.HTTP_400_BAD_REQUEST)
         
         email = serializer.validated_data.get("eamil")
-        print(request.headers)
-
-        return Response(
-            {
-                "Headers": request.headers,
-                "Origin": request.headers['Origin']
-            }
-        )
-        # try:
-        #     # user = User.objects.get(email=email)
-        #     # uidb64 = urlsafe_base64_encode(smart_bytes(user.id))
-        #     # token = AuthToken.objects.get_or_create(user=user).key
-
-        #     # password
-        #     pass
-        # except:
-        #     pass
-
-
+        print(request.get_host())
 
         if Account.objects.filter(email=email).exists():
             user = Account.objects.get(email=email)
             uidb64 = urlsafe_base64_encode(smart_bytes(user.id))
             token = PasswordResetTokenGenerator().make_token(user)
-            current_site = get_current_site(
-                request=request).domain
+            request_host = request.get_host()
             relativeLink = reverse(
                 'password-reset-confirm', kwargs={'uidb64': uidb64, 'token': token})
 
             redirect_url = request.data.get('redirect_url', '')
-            absurl = 'http://'+current_site+relativeLink
+            absurl = 'http://' + request_host + relativeLink
             email_body = 'Hi,' + '\nThere was a request to change your password!'+ '\nIf you did not make this request then please ignore this email.' '\nOtherwise, use link below to reset your password  \n' + \
             absurl+"?redirect_url="+redirect_url
             data = {'email_body': email_body, 'to_email': user.email,
