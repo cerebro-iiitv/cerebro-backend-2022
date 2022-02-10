@@ -38,7 +38,6 @@ INSTALLED_APPS = [
     "faqs.apps.FaqsConfig",
     "docs.apps.DocsConfig",
     "corsheaders",
-    'django_rest_passwordreset',
     "rest_framework",
     "phonenumber_field",
     "django.contrib.admin",
