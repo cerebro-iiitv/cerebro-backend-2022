@@ -2,7 +2,10 @@ from rest_framework import serializers
 
 from accounts.models import Account
 from registration.models import TeamMember
-
+from django.contrib.auth.tokens import PasswordResetTokenGenerator
+from django.utils.encoding import smart_str, force_str, smart_bytes, DjangoUnicodeDecodeError
+from django.utils.http import urlsafe_base64_decode, urlsafe_base64_encode
+from rest_framework.exceptions import AuthenticationFailed
 
 class AccountSerializer(serializers.ModelSerializer):
     class Meta:
@@ -33,6 +36,26 @@ class LoginSerializer(serializers.Serializer):
     class Meta:
         fields = "__all__"
 
+
+class ResetPasswordRequestSerializer(serializers.Serializer):
+    email = serializers.EmailField(min_length=2)
+
+    class Meta:
+        fields = ['email']
+
+
+class SetNewPasswordSerializer(serializers.Serializer):
+    password1 = serializers.CharField(
+        min_length=6, max_length=68)
+    password2 = serializers.CharField(
+        min_length=6, max_length=68)
+    token = serializers.CharField(
+        min_length=1)
+    uidb64 = serializers.CharField(
+        min_length=1)
+
+    class Meta:
+        fields = ['password1', 'password2', 'token', 'uidb64']
 
 class AccountDashboardSerializer(serializers.ModelSerializer):
     user_team = RegisteredEventSerializer(many=True)

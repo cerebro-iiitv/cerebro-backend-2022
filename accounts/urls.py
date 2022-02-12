@@ -12,7 +12,10 @@ urlpatterns = [
     path("login/", views.LoginView.as_view(), name="login"),
     path("logout/", views.LogoutView.as_view(), name="logout"),
     path('email-verify/', views.VerifyEmail.as_view(), name="email-verify"),
-    
+    path('request-reset-password/', views.RequestPasswordReset.as_view(),
+         name="request-reset-password"),
+    path('password-reset-complete/', views.SetNewPasswordAPIView.as_view(),
+         name='password-reset-complete')
 ]
 
 urlpatterns = format_suffix_patterns(urlpatterns)
