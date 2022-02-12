@@ -15,7 +15,7 @@ from django.contrib.auth.tokens import PasswordResetTokenGenerator
 
 from accounts.authentication import MultipleTokenAuthentication
 from accounts.models import Account, AuthToken
-from accounts.serializers import AccountDashboardSerializer, AccountSerializer, LoginSerializer,EmailVerificationSerializer, SetNewPasswordSerializer, ResetPasswordRequestSerializer
+from accounts.serializers import AccountDashboardSerializer, AccountSerializer, LoginSerializer, SetNewPasswordSerializer, ResetPasswordRequestSerializer
 from django.contrib.sites.shortcuts import get_current_site
 from django.urls import reverse
 from .utils import Util
@@ -58,7 +58,6 @@ class SignUpView(APIView):
         return Response({"status": "User created successfully"}, status=status.HTTP_201_CREATED)
     
 class VerifyEmail(APIView):
-    serializer_class = EmailVerificationSerializer
 
     def get(self, request):
         token = request.GET.get('token')
