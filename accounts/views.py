@@ -138,25 +138,6 @@ class LogoutView(APIView):
             return Response({"Success": "Logout"}, status=status.HTTP_200_OK)
         else:
             return Response({"Error": "Token not found!"}, status=status.status.HTTP_404_NOT_FOUND)
-
-class PasswordTokenCheckAPI(generics.GenericAPIView):
-    serializer_class = SetNewPasswordSerializer
-
-    def get(self, request, uidb64, token):
-        redirect_url = request.GET.get('redirect_url')
-
-        try:
-            id = smart_str(urlsafe_base64_decode(uidb64))
-            user = Account.objects.get(id=id)
-
-            if not PasswordResetTokenGenerator().check_token(user, token):
-                return Response({'error': 'Token is not valid, please request a new one'}, status=status.HTTP_401_UNAUTHORIZED)
-            
-            return CustomRedirect(redirect_url+'?&uidb64='+uidb64+'&token='+token)
-
-        except DjangoUnicodeDecodeError as identifier:
-            if not PasswordResetTokenGenerator().check_token(user):
-                return Response({'error': 'Token is not valid, please request a new one'}, status=status.HTTP_401_UNAUTHORIZED)
                
 class SetNewPasswordAPIView(generics.GenericAPIView):
     serializer_class = SetNewPasswordSerializer
