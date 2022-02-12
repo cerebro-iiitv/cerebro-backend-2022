@@ -14,13 +14,6 @@ class TeamViewSet(ModelViewSet):
     serializer_class = TeamSerializer
     http_method_names = ["get"]
 
-    def get_queryset(self):
-        if self.request.GET.get("team") is not None:
-            team = self.request.GET.get("team")
-            return Team.objects.filter(team=team).order_by("priority")
-
-        return Team.objects.all().order_by("priority")
-
     def list(self, request, *args, **kwargs):
         team_choices = [
             ("core", "Core"),
@@ -37,7 +30,5 @@ class TeamViewSet(ModelViewSet):
         for choice in team_choices:
             team = Team.objects.filter(team=choice[0]).order_by("priority")
             data[choice[1]] = self.serializer_class(team, many=True).data
-
-        print(data)
 
         return Response(data, status=status.HTTP_200_OK)
