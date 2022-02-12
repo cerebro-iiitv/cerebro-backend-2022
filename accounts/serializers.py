@@ -45,7 +45,9 @@ class ResetPasswordRequestSerializer(serializers.Serializer):
 
 
 class SetNewPasswordSerializer(serializers.Serializer):
-    password = serializers.CharField(
+    password1 = serializers.CharField(
+        min_length=6, max_length=68, write_only=True)
+    password2 = serializers.CharField(
         min_length=6, max_length=68, write_only=True)
     token = serializers.CharField(
         min_length=1, write_only=True)
@@ -53,7 +55,7 @@ class SetNewPasswordSerializer(serializers.Serializer):
         min_length=1, write_only=True)
 
     class Meta:
-        fields = ['password', 'token', 'uidb64']
+        fields = ['password1', 'password2', 'token', 'uidb64']
 
     def validate(self, attrs):
         try:
