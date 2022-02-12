@@ -72,13 +72,11 @@ class VerifyEmail(APIView):
         except:
             return Response({'error': 'Invalid token'}, status=status.HTTP_400_BAD_REQUEST)
     
-    
 class AccountViewSet(ModelViewSet):
     serializer_class = AccountSerializer
     queryset = Account.objects.all()
     permission_classes = [permissions.IsAuthenticated]
     authentication_classes = [MultipleTokenAuthentication]
-
 
 class DashboardViewSet(ModelViewSet):
     serializer_class = AccountDashboardSerializer
@@ -128,7 +126,6 @@ class LoginView(APIView):
                 status=status.HTTP_200_OK
             )
 
-
 class LogoutView(APIView):
     permission_classes = [permissions.IsAuthenticated]
     authentication_classes = [MultipleTokenAuthentication]
@@ -160,15 +157,41 @@ class PasswordTokenCheckAPI(generics.GenericAPIView):
         except DjangoUnicodeDecodeError as identifier:
             if not PasswordResetTokenGenerator().check_token(user):
                 return Response({'error': 'Token is not valid, please request a new one'}, status=status.HTTP_401_UNAUTHORIZED)
-        
-            
+               
 class SetNewPasswordAPIView(generics.GenericAPIView):
     serializer_class = SetNewPasswordSerializer
 
     def patch(self, request):
         serializer = self.serializer_class(data=request.data)
-        serializer.is_valid(raise_exception=True)
-        return Response({'success': True, 'message': 'Password reset success'}, status=status.HTTP_200_OK)
+
+        if not serializer.is_valid():
+            return Response(serializer.error_messages, status=status.HTTP_400_BAD_REQUEST)
+        
+        uidb64 = serializer.validated_data.get("uidb64")
+        token = serializer.validated_data.get("token")
+        password1 = serializer.validated_data.get("password1")
+        password2 = serializer.validated_data.get("password2")
+        
+        try:
+            id = force_str(urlsafe_base64_decode(uidb64))
+        except DjangoUnicodeDecodeError:
+            return Response({"error": "Password reset link is not valid, please request a new link"}, status=status.HTTP_401_UNAUTHORIZED)
+
+        try:
+            user = Account.objects.get(id = id)
+        except Account.DoesNotExist:
+            return Response({"error": "Password reset link is not valid, please request a new link"}, status=status.HTTP_401_UNAUTHORIZED)
+
+        if not PasswordResetTokenGenerator().check_token(user, token):    
+            return Response({"error": "Password reset link is not valid, please request a new link"}, status=status.HTTP_401_UNAUTHORIZED)
+
+        if password1 != password2:
+            return Response({"error": "Password and confirm password do not match"}, status=status.HTTP_400_BAD_REQUEST)
+
+        user.set_password(password1)
+        user.save()
+
+        return Response({"success": True, "message": "Password reset success"}, status=status.HTTP_200_OK)
 
 class RequestPasswordReset(generics.GenericAPIView):
     serializer_class = ResetPasswordRequestSerializer
@@ -179,10 +202,9 @@ class RequestPasswordReset(generics.GenericAPIView):
         if not serializer.is_valid():
             return Response(serializer.error_messages, status=status.HTTP_400_BAD_REQUEST)
         
-        email = serializer.validated_data.get("eamil")
-        print(request.get_host())
+        email = serializer.validated_data.get("email")
 
-        if Account.objects.filter(email=email).exists():
+        try:
             user = Account.objects.get(email=email)
             uidb64 = urlsafe_base64_encode(smart_bytes(user.id))
             token = PasswordResetTokenGenerator().make_token(user)
@@ -190,16 +212,18 @@ class RequestPasswordReset(generics.GenericAPIView):
             relativeLink = reverse(
                 'password-reset-confirm', kwargs={'uidb64': uidb64, 'token': token})
 
-            redirect_url = request.data.get('redirect_url', '')
+            # redirect_url = request.data.get('redirect_url', '')
             absurl = 'http://' + request_host + relativeLink
-            email_body = 'Hi,' + '\nThere was a request to change your password!'+ '\nIf you did not make this request then please ignore this email.' '\nOtherwise, use link below to reset your password  \n' + \
-            absurl+"?redirect_url="+redirect_url
+            email_body = 'Hi,' + '\nThere was a request to change your password!'+ \
+            '\nIf you did not make this request then please ignore this email.' + \
+            '\nOtherwise, use link below to reset your password  \n' + absurl
             data = {'email_body': email_body, 'to_email': user.email,
                     'email_subject': 'Reset your passsword'}
             Util.send_email(data)
-        return Response({'success': 'We have sent you a link to reset your password'}, status=status.HTTP_200_OK)
+            return Response({'success': 'We have sent you a link to reset your password'}, status=status.HTTP_200_OK)
+        except Account.DoesNotExist:
+            return Response({"status": "User with given email id does not exist"}, status=status.HTTP_200_OK)
     
-
 class GoogleLogin(APIView):
     def post(self, request):
         payload = {"access_token": request.data.get("Token")}
