@@ -188,17 +188,18 @@ class RequestPasswordReset(generics.GenericAPIView):
             user = Account.objects.get(email=email)
             uidb64 = urlsafe_base64_encode(smart_bytes(user.id))
             token = PasswordResetTokenGenerator().make_token(user)
-            request_host = request.get_host()
-            relativeLink = reverse(
-                'password-reset-complete')
-            absurl = 'http://' + request_host + relativeLink + uidb64 + "/" + token + "/"
-            email_body = 'Hi,' + '\nThere was a request to change your password!'+ \
-            '\nIf you did not make this request then please ignore this email.' + \
-            '\nOtherwise, use link below to reset your password  \n' + absurl
-            data = {'email_body': email_body, 'to_email': user.email,
-                    'email_subject': 'Reset your passsword'}
-            Util.send_email(data)
-            return Response({'success': 'We have sent you a link to reset your password'}, status=status.HTTP_200_OK)
+            return Response(request.headers, status=status.HTTP_200_OK)
+            # request_host = request.get_host()
+            # relativeLink = reverse(
+            #     'password-reset-complete')
+            # absurl = 'http://' + request_host + relativeLink + uidb64 + "/" + token + "/"
+            # email_body = 'Hi,' + '\nThere was a request to change your password!'+ \
+            # '\nIf you did not make this request then please ignore this email.' + \
+            # '\nOtherwise, use link below to reset your password  \n' + absurl
+            # data = {'email_body': email_body, 'to_email': user.email,
+            #         'email_subject': 'Reset your passsword'}
+            # Util.send_email(data)
+            # return Response({'success': 'We have sent you a link to reset your password'}, status=status.HTTP_200_OK)
         except Account.DoesNotExist:
             return Response({"status": "User with given email id does not exist"}, status=status.HTTP_200_OK)
     
