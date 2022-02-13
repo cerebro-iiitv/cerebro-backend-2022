@@ -190,10 +190,8 @@ class RequestPasswordReset(generics.GenericAPIView):
             token = PasswordResetTokenGenerator().make_token(user)
             request_host = request.get_host()
             relativeLink = reverse(
-                'password-reset-confirm', kwargs={'uidb64': uidb64, 'token': token})
-
-            # redirect_url = request.data.get('redirect_url', '')
-            absurl = 'http://' + request_host + relativeLink
+                'password-reset-complete')
+            absurl = 'http://' + request_host + relativeLink + uidb64 + "/" + token + "/"
             email_body = 'Hi,' + '\nThere was a request to change your password!'+ \
             '\nIf you did not make this request then please ignore this email.' + \
             '\nOtherwise, use link below to reset your password  \n' + absurl
