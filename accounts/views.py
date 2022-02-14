@@ -16,6 +16,7 @@ from django.contrib.auth.tokens import PasswordResetTokenGenerator
 from accounts.authentication import MultipleTokenAuthentication
 from accounts.models import Account, AuthToken
 from accounts.serializers import AccountDashboardSerializer, AccountSerializer, LoginSerializer, SetNewPasswordSerializer, ResetPasswordRequestSerializer
+from docs.serializers import FileUploadSerializer, ProofFileUploadSerializer
 from django.contrib.sites.shortcuts import get_current_site
 from django.urls import reverse
 from .utils import Util
@@ -37,12 +38,22 @@ class SignUpView(APIView):
     permission_classes = [AllowAny]
 
     def post(self, request):
+        
+        file_serializer = ProofFileUploadSerializer(data = request.data)
+        if not file_serializer.is_valid():
+            return Response(file_serializer.errors)
+        
+        obj = file_serializer.save(**file_serializer.validated_data)   
+        pdf_link = obj.pdf
+        
         serializer = AccountSerializer(data=request.data)
-
         if not serializer.is_valid():
             return Response(serializer.errors)
-        user = Account.objects.create_user(**serializer.validated_data)
-        user_data = serializer.data
+ 
+        user_data = serializer.validated_data
+        user_data["proof"] = pdf_link
+        user = Account.objects.create_user(**user_data)
+
         useremail = Account.objects.get(email=user_data['email'])
         token = AuthToken.objects.create(user=user)
         current_site = get_current_site(request).domain

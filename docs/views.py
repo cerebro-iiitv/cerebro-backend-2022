@@ -13,23 +13,10 @@ class FileUploadViewSet(ModelViewSet):
     serializer_class = ProofFileUploadSerializer
     parser_classes = (MultiPartParser, FormParser,)
     
-    permission_classes_by_action = {'create': [AllowAny],
-                                    'list': [IsAuthenticated]}
+    permission_classes_by_action = {'list': [IsAuthenticated]}
     
     def list(self, request, *args, **kwargs):
         return super(FileUploadViewSet, self).list(request, *args, **kwargs)
-    
-    def perform_create(self,serializer):
-        email = self.request.data.get('email')
-        pdf = self.request.data.get('pdf')
-
-        obj = serializer.save(email=email,
-                       pdf=pdf)
-        pdf_link = obj.pdf
-
-        account = Account.objects.get(email=email)
-        account.proof = pdf_link
-        account.save()
     
     def get_permissions(self):
         try:
