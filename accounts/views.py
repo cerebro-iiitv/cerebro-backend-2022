@@ -255,5 +255,3 @@ class GoogleLogin(APIView):
         response["user_id"] = account.id
         response["access_token"] = str(token)
         return Response(response, status=status.HTTP_200_OK)
-
-

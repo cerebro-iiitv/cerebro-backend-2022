@@ -6,6 +6,7 @@ from rest_framework.routers import DefaultRouter
 router = DefaultRouter()
 router.register(r'users', views.AccountViewSet, basename='user')
 
+
 urlpatterns = [
     path("", views.index, name="index"),
     path("signup/", views.SignUpView.as_view(), name="signup"),
