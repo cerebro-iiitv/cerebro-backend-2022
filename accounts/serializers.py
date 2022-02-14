@@ -51,6 +51,18 @@ class SetNewPasswordSerializer(serializers.Serializer):
     class Meta:
         fields = ['password1', 'password2', 'token', 'uidb64']
 
+class ChangePasswordSerializer(serializers.Serializer):
+    
+    old_password = serializers.CharField(
+        min_length=6, max_length=68)
+    new_password1 = serializers.CharField(
+        min_length=6, max_length=68)
+    new_password2 = serializers.CharField(
+        min_length=6, max_length=68)
+    
+    class Meta:
+        fields = ['old_password', 'new_password1', 'new_password2']
+
 class AccountDashboardSerializer(serializers.ModelSerializer):
     user_team = RegisteredEventSerializer(many=True)
     first_name = serializers.CharField(source="user.first_name")

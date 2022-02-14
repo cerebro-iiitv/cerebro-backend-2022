@@ -15,7 +15,8 @@ urlpatterns = [
     path('request-reset-password/', views.RequestPasswordReset.as_view(),
          name="request-reset-password"),
     path('password-reset/', views.SetNewPasswordAPIView.as_view(),
-         name='password-reset-complete')
+         name='password-reset-complete'),
+    path('change-password/', views.ChangePasswordView.as_view(), name='change-password'),
 ]
 
 urlpatterns = format_suffix_patterns(urlpatterns)
