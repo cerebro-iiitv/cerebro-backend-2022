@@ -5,16 +5,14 @@ class ProofFileUploadSerializer(serializers.HyperlinkedModelSerializer):
     
     class Meta:
         model = ProofPDF
-        fields = ['email','pdf']
+        fields = ['email','pdf', 'id']
         
-    """used pop pdf link from response"""
-    def to_representation(self, instance):
-        result = super().to_representation(instance)
-        result.pop('pdf')
-        return result
+        extra_kwargs = {
+            'pdf': {'write_only': True},
+        }
 
 class FileUploadSerializer(serializers.HyperlinkedModelSerializer):
     
     class Meta:
         model = PDF
-        fields = ['title','pdf']
+        fields = ['title','pdf', 'id']
