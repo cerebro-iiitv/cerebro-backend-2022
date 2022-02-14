@@ -205,7 +205,6 @@ class RequestPasswordReset(generics.GenericAPIView):
         except Account.DoesNotExist:
             return Response({"status": "User with given email id does not exist"}, status=status.HTTP_200_OK)
         
-
 class ChangePasswordView(generics.UpdateAPIView):
 
     serializer_class = ChangePasswordSerializer
@@ -244,8 +243,6 @@ class ChangePasswordView(generics.UpdateAPIView):
 
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)        
         
-
-
     
 class GoogleLogin(APIView):
     def post(self, request):
