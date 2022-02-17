@@ -77,7 +77,29 @@ class IndividualRegistrationViewSet(ModelViewSet):
         participant.save()
         participant_serialized = IndividualParticipationSerializer(participant)
         return Response(participant_serialized.data, status=status.HTTP_201_CREATED)
+    
+    def partial_update(self, request, pk=None):
+        serializer = self.serializer_class(data=request.data)
+        
+        if not serializer.is_valid():
+            return Response(serializer.error_messages, status=status.HTTP_400_BAD_REQUEST)
+        event = serializer.validated_data.get("event")
+        try:
+            obj = self.get_object()
 
+        except:
+            return Response({"error": "User not registered in the event"}, status=status.HTTP_400_BAD_REQUEST)
+        
+        if event.submission_closed:
+            return Response({"error": "Submissions are closed for this event"}, status=status.HTTP_400_BAD_REQUEST)
+        super().partial_update(request)
+
+        if not serializer.is_valid():
+            print(serializer.errors)
+            return Response(serializer.error_messages, status=status.HTTP_400_BAD_REQUEST)
+        
+        return Response(serializer.data, status=status.HTTP_201_CREATED)
+    
 
 class TeamRegistrationViewSet(ModelViewSet):
     serializer_class = TeamParticipationSerializer
@@ -155,7 +177,6 @@ class TeamRegistrationViewSet(ModelViewSet):
             },
             status=status.HTTP_201_CREATED
         )
-
 
 class TeamMemberViewSet(ModelViewSet):
     serializer_class = TeamMemberSerializer
