@@ -7,12 +7,14 @@ from rest_framework.urlpatterns import format_suffix_patterns
 from registration.views import (
     IndividualRegistrationViewSet,
     TeamRegistrationViewSet,
+    TeamSubmissionViewSet,
     TeamMemberViewSet
 )
 
 router = SimpleRouter()
 router.register("individual-registration", IndividualRegistrationViewSet, basename="api-individual-registration")
 router.register("team", TeamRegistrationViewSet, basename="api-create-team")
+router.register("team-submission", TeamSubmissionViewSet, basename="api-submit-team")
 router.register("teammember", TeamMemberViewSet, basename="api-team-member")
 # from registration.views import TeamRegistrationViewSet, CsvGenerate, TeamData, index
 

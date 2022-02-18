@@ -26,6 +26,7 @@ from registration.models import (
 from registration.serializers import (
     IndividualParticipationSerializer,
     TeamMemberSerializer,
+    TeamSubmissionSerializer,
     TeamParticipationSerializer)
 from registration.utils import validate_registration_data
 
@@ -177,6 +178,34 @@ class TeamRegistrationViewSet(ModelViewSet):
             },
             status=status.HTTP_201_CREATED
         )
+        
+class TeamSubmissionViewSet(ModelViewSet):
+    serializer_class = TeamSubmissionSerializer
+    queryset = TeamParticipation.objects.all()
+    permission_classes = [permissions.IsAuthenticated]
+    authentication_classes = [MultipleTokenAuthentication, TokenAuthentication]
+    
+    def partial_update(self, request, pk=None):
+        serializer = self.serializer_class(data=request.data)
+        
+        if not serializer.is_valid():
+            return Response(serializer.error_messages, status=status.HTTP_400_BAD_REQUEST)
+        event = serializer.validated_data.get("event")
+        try:
+            obj = self.get_object()
+
+        except:
+            return Response({"error": "User not registered in the event"}, status=status.HTTP_400_BAD_REQUEST)
+        
+        if event.submission_closed:
+            return Response({"error": "Submissions are closed for this event"}, status=status.HTTP_400_BAD_REQUEST)
+        super().partial_update(request)
+
+        if not serializer.is_valid():
+            print(serializer.errors)
+            return Response(serializer.error_messages, status=status.HTTP_400_BAD_REQUEST)
+        
+        return Response(serializer.data, status=status.HTTP_201_CREATED)
 
 class TeamMemberViewSet(ModelViewSet):
     serializer_class = TeamMemberSerializer
