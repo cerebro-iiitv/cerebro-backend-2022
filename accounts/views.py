@@ -38,11 +38,12 @@ class SignUpView(APIView):
 
     def post(self, request):
         serializer = AccountSerializer(data=request.data)
-
         if not serializer.is_valid():
             return Response(serializer.errors)
-        user = Account.objects.create_user(**serializer.validated_data)
-        user_data = serializer.data
+
+        user_data = serializer.validated_data
+        user = Account.objects.create_user(**user_data)
+
         useremail = Account.objects.get(email=user_data['email'])
         token = AuthToken.objects.create(user=user)
         current_site = get_current_site(request).domain
@@ -52,7 +53,6 @@ class SignUpView(APIView):
             'Click the link below to verify your email \n' + absurl
         data = {'email_body': email_body, 'to_email': useremail.email,
                 'email_subject': 'Verify your email'}
-        
 
         Util.send_email(data)
         return Response({"status": "User created successfully"}, status=status.HTTP_201_CREATED)
