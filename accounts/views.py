@@ -18,6 +18,8 @@ from accounts.models import Account, AuthToken
 from accounts.serializers import AccountDashboardSerializer, AccountSerializer, LoginSerializer, SetNewPasswordSerializer, ResetPasswordRequestSerializer, ChangePasswordSerializer
 from django.contrib.sites.shortcuts import get_current_site
 from django.urls import reverse
+
+from docs.models import ProofPDF
 from .utils import Util
 from django.utils.encoding import smart_str, force_str, smart_bytes, DjangoUnicodeDecodeError
 from django.utils.http import urlsafe_base64_decode, urlsafe_base64_encode
@@ -42,6 +44,16 @@ class SignUpView(APIView):
             return Response(serializer.errors)
 
         user_data = serializer.validated_data
+        proof = user_data.pop("proof_id", None)
+        email = user_data.get("email")
+
+        if proof:
+            print(proof.email)
+            if proof.email != email:
+                return Response({"error": "Invalid Pdf"}, status=status.HTTP_400_BAD_REQUEST)
+        else:
+            return Response({"error": "Invalid Pdf"}, status=status.HTTP_400_BAD_REQUEST)
+
         user = Account.objects.create_user(**user_data)
 
         useremail = Account.objects.get(email=user_data['email'])
