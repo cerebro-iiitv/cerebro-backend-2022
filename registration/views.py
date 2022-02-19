@@ -30,10 +30,6 @@ from registration.serializers import (
 from registration.utils import validate_registration_data
 
 
-def index(request):
-    return render(request, "accounts/base.html")
-
-
 class IndividualRegistrationViewSet(ModelViewSet):
     serializer_class = IndividualParticipationSerializer
     queryset = IndividualParticipation.objects.all()
