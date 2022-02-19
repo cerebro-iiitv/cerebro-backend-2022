@@ -48,12 +48,12 @@ class SignUpView(APIView):
         email = user_data.get("email")
 
         if proof:
-            print(proof.email)
             if proof.email != email:
                 return Response({"error": "Invalid Pdf"}, status=status.HTTP_400_BAD_REQUEST)
         else:
             return Response({"error": "Invalid Pdf"}, status=status.HTTP_400_BAD_REQUEST)
 
+        user_data["proof"] = proof.pdf
         user = Account.objects.create_user(**user_data)
 
         useremail = Account.objects.get(email=user_data['email'])
