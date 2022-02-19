@@ -2,7 +2,7 @@ from django.shortcuts import render
 from httplib2 import Response
 from rest_framework.viewsets import ModelViewSet
 from accounts import serializers
-from docs.models import PDF
+from docs.models import PDF, ProofPDF
 from docs.serializers import FileUploadSerializer, ProofFileUploadSerializer
 from rest_framework.parsers import FormParser, MultiPartParser
 from accounts.models import Account
@@ -12,7 +12,7 @@ from rest_framework import status
 
 class FileUploadViewSet(ModelViewSet):
     
-    queryset = PDF.objects.all()
+    queryset = ProofPDF.objects.all()
     serializer_class = ProofFileUploadSerializer
     parser_classes = (MultiPartParser, FormParser,)
     
@@ -30,11 +30,11 @@ class FileUploadViewSet(ModelViewSet):
         email = serializer.validated_data.get("email")
 
         try:
-            prev_pdf = PDF.objects.get(email=email)
+            prev_pdf = ProofPDF.objects.get(email=email)
             prev_pdf.delete()
-        except PDF.DoesNotExist:
+        except ProofPDF.DoesNotExist:
             pass    
-        
+
         return super().create(request, *args, **kwargs)
     
     def get_permissions(self):
