@@ -18,6 +18,8 @@ from accounts.models import Account, AuthToken
 from accounts.serializers import AccountDashboardSerializer, AccountSerializer, LoginSerializer, SetNewPasswordSerializer, ResetPasswordRequestSerializer, ChangePasswordSerializer
 from django.contrib.sites.shortcuts import get_current_site
 from django.urls import reverse
+
+from docs.models import ProofPDF
 from .utils import Util
 from django.utils.encoding import smart_str, force_str, smart_bytes, DjangoUnicodeDecodeError
 from django.utils.http import urlsafe_base64_decode, urlsafe_base64_encode
@@ -38,11 +40,22 @@ class SignUpView(APIView):
 
     def post(self, request):
         serializer = AccountSerializer(data=request.data)
-
         if not serializer.is_valid():
             return Response(serializer.errors)
-        user = Account.objects.create_user(**serializer.validated_data)
-        user_data = serializer.data
+
+        user_data = serializer.validated_data
+        proof = user_data.pop("proof_id", None)
+        email = user_data.get("email")
+
+        if proof:
+            if proof.email != email:
+                return Response({"error": "Invalid Pdf"}, status=status.HTTP_400_BAD_REQUEST)
+        else:
+            return Response({"error": "Invalid Pdf"}, status=status.HTTP_400_BAD_REQUEST)
+
+        user_data["proof"] = proof.pdf
+        user = Account.objects.create_user(**user_data)
+
         useremail = Account.objects.get(email=user_data['email'])
         token = AuthToken.objects.create(user=user)
         current_site = get_current_site(request).domain
@@ -52,7 +65,6 @@ class SignUpView(APIView):
             'Click the link below to verify your email \n' + absurl
         data = {'email_body': email_body, 'to_email': useremail.email,
                 'email_subject': 'Verify your email'}
-        
 
         Util.send_email(data)
         return Response({"status": "User created successfully"}, status=status.HTTP_201_CREATED)

@@ -1,35 +1,41 @@
 from django.shortcuts import render
+from httplib2 import Response
 from rest_framework.viewsets import ModelViewSet
 from accounts import serializers
-from docs.models import PDF
+from docs.models import PDF, ProofPDF
 from docs.serializers import FileUploadSerializer, ProofFileUploadSerializer
 from rest_framework.parsers import FormParser, MultiPartParser
 from accounts.models import Account
 from rest_framework.permissions import AllowAny, IsAuthenticated
-# Create your views here.
+from rest_framework import status
+
+
 class FileUploadViewSet(ModelViewSet):
     
-    queryset = PDF.objects.all()
+    queryset = ProofPDF.objects.all()
     serializer_class = ProofFileUploadSerializer
     parser_classes = (MultiPartParser, FormParser,)
     
-    permission_classes_by_action = {'create': [AllowAny],
-                                    'list': [IsAuthenticated]}
+    permission_classes_by_action = {'list': [IsAuthenticated]}
     
     def list(self, request, *args, **kwargs):
         return super(FileUploadViewSet, self).list(request, *args, **kwargs)
-    
-    def perform_create(self,serializer):
-        email = self.request.data.get('email')
-        pdf = self.request.data.get('pdf')
 
-        obj = serializer.save(email=email,
-                       pdf=pdf)
-        pdf_link = obj.pdf
+    def create(self, request, *args, **kwargs):
+        serializer = self.serializer_class(data=request.data)
 
-        account = Account.objects.get(email=email)
-        account.proof = pdf_link
-        account.save()
+        if not serializer.is_valid():
+            return Response(serializer.error_messages, status=status.HTTP_400_BAD_REQUEST)
+
+        email = serializer.validated_data.get("email")
+
+        try:
+            prev_pdf = ProofPDF.objects.get(email=email)
+            prev_pdf.delete()
+        except ProofPDF.DoesNotExist:
+            pass    
+
+        return super().create(request, *args, **kwargs)
     
     def get_permissions(self):
         try:
