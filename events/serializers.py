@@ -31,6 +31,9 @@ class EventSerializer(serializers.ModelSerializer):
             "rules_doc",
             "social_media",
             "registration_closed",
+            "registration_attributes",
             "submission_required",
+            "submission_attributes",
+            "submission_closed",
             "contacts",
         )
