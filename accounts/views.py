@@ -221,7 +221,8 @@ class ChangePasswordView(generics.UpdateAPIView):
 
     serializer_class = ChangePasswordSerializer
     model = Account
-    permission_classes = (IsAuthenticated,)
+    authentication_classes = [MultipleTokenAuthentication]
+    permission_classes = [permissions.IsAuthenticated]
 
     def get_object(self, queryset=None):
         obj = self.request.user
@@ -242,7 +243,7 @@ class ChangePasswordView(generics.UpdateAPIView):
             if new_password1 != new_password2:
                 return Response({"error": "Password and confirm password do not match"}, status=status.HTTP_400_BAD_REQUEST)
             
-            self.object.set_password(serializer.data.get("new_password"))
+            self.object.set_password(serializer.data.get("new_password1"))
             self.object.save()
             response = {
                 'status': 'success',
