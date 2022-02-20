@@ -1,5 +1,4 @@
 from django.shortcuts import render
-from httplib2 import Response
 from rest_framework.viewsets import ModelViewSet
 from accounts import serializers
 from docs.models import PDF, ProofPDF
@@ -8,7 +7,7 @@ from rest_framework.parsers import FormParser, MultiPartParser
 from accounts.models import Account
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework import status
-
+from rest_framework.response import Response
 
 class FileUploadViewSet(ModelViewSet):
     
