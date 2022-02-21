@@ -22,6 +22,7 @@ class EventSerializer(serializers.ModelSerializer):
         fields = (
             "id",
             "event_type",
+            "team_event",
             "title",
             "description",
             "prize",
@@ -31,6 +32,9 @@ class EventSerializer(serializers.ModelSerializer):
             "rules_doc",
             "social_media",
             "registration_closed",
+            "registration_attributes",
             "submission_required",
-            "contacts",
+            "submission_attributes",
+            "submission_closed",
+            "contacts"
         )

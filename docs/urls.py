@@ -1,8 +1,12 @@
 from rest_framework.routers import DefaultRouter
+from rest_framework.urlpatterns import format_suffix_patterns
 from . import views
 router = DefaultRouter()
 
-router.register(r'upload', views.FileUploadViewSet, basename="upload")
-router.register(r'eventfile-upload', views.FileUploadViewSet, basename="eventfile-upload")
+router.register(r'proof-upload', views.FileUploadViewSet, basename="Proof-Upload")
+
+urlpatterns = []
+urlpatterns = format_suffix_patterns(urlpatterns)
+urlpatterns += router.urls
 
 urlpatterns = router.urls

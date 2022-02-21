@@ -15,9 +15,11 @@ from django.contrib.auth.tokens import PasswordResetTokenGenerator
 
 from accounts.authentication import MultipleTokenAuthentication
 from accounts.models import Account, AuthToken
-from accounts.serializers import AccountDashboardSerializer, AccountSerializer, LoginSerializer, SetNewPasswordSerializer, ResetPasswordRequestSerializer
+from accounts.serializers import AccountDashboardSerializer, AccountSerializer, LoginSerializer, SetNewPasswordSerializer, ResetPasswordRequestSerializer, ChangePasswordSerializer
 from django.contrib.sites.shortcuts import get_current_site
 from django.urls import reverse
+
+from docs.models import ProofPDF
 from .utils import Util
 from django.utils.encoding import smart_str, force_str, smart_bytes, DjangoUnicodeDecodeError
 from django.utils.http import urlsafe_base64_decode, urlsafe_base64_encode
@@ -38,11 +40,22 @@ class SignUpView(APIView):
 
     def post(self, request):
         serializer = AccountSerializer(data=request.data)
-
         if not serializer.is_valid():
             return Response(serializer.errors)
-        user = Account.objects.create_user(**serializer.validated_data)
-        user_data = serializer.data
+
+        user_data = serializer.validated_data
+        proof = user_data.pop("proof_id", None)
+        email = user_data.get("email")
+
+        if proof:
+            if proof.email != email:
+                return Response({"error": "Invalid Pdf"}, status=status.HTTP_400_BAD_REQUEST)
+        else:
+            return Response({"error": "Invalid Pdf"}, status=status.HTTP_400_BAD_REQUEST)
+
+        user_data["proof"] = proof.pdf
+        user = Account.objects.create_user(**user_data)
+
         useremail = Account.objects.get(email=user_data['email'])
         token = AuthToken.objects.create(user=user)
         current_site = get_current_site(request).domain
@@ -52,7 +65,6 @@ class SignUpView(APIView):
             'Click the link below to verify your email \n' + absurl
         data = {'email_body': email_body, 'to_email': useremail.email,
                 'email_subject': 'Verify your email'}
-        
 
         Util.send_email(data)
         return Response({"status": "User created successfully"}, status=status.HTTP_201_CREATED)
@@ -204,6 +216,45 @@ class RequestPasswordReset(generics.GenericAPIView):
             return Response({'success': 'We have sent you a link to reset your password'}, status=status.HTTP_200_OK)
         except Account.DoesNotExist:
             return Response({"status": "User with given email id does not exist"}, status=status.HTTP_200_OK)
+        
+class ChangePasswordView(generics.UpdateAPIView):
+
+    serializer_class = ChangePasswordSerializer
+    model = Account
+    permission_classes = (IsAuthenticated,)
+
+    def get_object(self, queryset=None):
+        obj = self.request.user
+        return obj
+
+    def update(self, request, *args, **kwargs):
+        self.object = self.get_object()
+        serializer = self.get_serializer(data=request.data)
+
+        if serializer.is_valid():
+
+            if not self.object.check_password(serializer.data.get("old_password")):
+                return Response({"old_password": ["Wrong password."]}, status=status.HTTP_400_BAD_REQUEST)
+            
+            new_password1 = serializer.validated_data.get("new_password1")
+            new_password2 = serializer.validated_data.get("new_password2")
+            
+            if new_password1 != new_password2:
+                return Response({"error": "Password and confirm password do not match"}, status=status.HTTP_400_BAD_REQUEST)
+            
+            self.object.set_password(serializer.data.get("new_password1"))
+            self.object.save()
+            response = {
+                'status': 'success',
+                'code': status.HTTP_200_OK,
+                'message': 'Password updated successfully',
+                'data': []
+            }
+
+            return Response(response)
+
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)        
+        
     
 class GoogleLogin(APIView):
     def post(self, request):

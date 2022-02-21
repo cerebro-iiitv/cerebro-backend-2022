@@ -6,11 +6,17 @@ from django.contrib.auth.tokens import PasswordResetTokenGenerator
 from django.utils.encoding import smart_str, force_str, smart_bytes, DjangoUnicodeDecodeError
 from django.utils.http import urlsafe_base64_decode, urlsafe_base64_encode
 from rest_framework.exceptions import AuthenticationFailed
+from docs.models import ProofPDF
 
 class AccountSerializer(serializers.ModelSerializer):
+    proof_id = serializers.PrimaryKeyRelatedField(queryset = ProofPDF.objects.all(), many = False)
     class Meta:
         model = Account
-        fields = ["first_name", "last_name", "email", "mobile_number", "institute_name","address","degree","password","proof"]
+        fields = ["first_name", "last_name", "email", "mobile_number", "institute_name","address","degree","password","proof", "proof_id"]
+        read_only_fields = ("proof", )
+        extra_kwargs = {
+            'proof_id': {'write_only': True},
+        }
 
 class RegisteredEventSerializer(serializers.ModelSerializer):
     event_name = serializers.CharField(source="event.title")
@@ -50,6 +56,18 @@ class SetNewPasswordSerializer(serializers.Serializer):
 
     class Meta:
         fields = ['password1', 'password2', 'token', 'uidb64']
+
+class ChangePasswordSerializer(serializers.Serializer):
+    
+    old_password = serializers.CharField(
+        min_length=6, max_length=68)
+    new_password1 = serializers.CharField(
+        min_length=6, max_length=68)
+    new_password2 = serializers.CharField(
+        min_length=6, max_length=68)
+    
+    class Meta:
+        fields = ['old_password', 'new_password1', 'new_password2']
 
 class AccountDashboardSerializer(serializers.ModelSerializer):
     user_team = RegisteredEventSerializer(many=True)
