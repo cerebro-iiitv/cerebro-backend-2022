@@ -1,4 +1,3 @@
-from accounts.views import DashboardViewSet
 from django.conf import settings
 from django.conf.urls import include
 from django.conf.urls.static import static
@@ -18,7 +17,6 @@ router.register("teams", TeamViewSet, basename="api-team")
 router.register("events", EventViewSet, basename="api-events")
 router.register("contacts", ContactViewSet, basename="api-contact")
 router.register("faqs", FaqViewSet, basename="api-faqs")
-router.register("dashboard", DashboardViewSet, basename="api-dashboard")
 
 urlpatterns = [
     path("", views.landing_page, name="landing"),
