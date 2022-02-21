@@ -31,4 +31,10 @@ class TeamSubmissionSerializer(serializers.ModelSerializer):
         read_only_fieldsjs = ["team_creator", "current_size", "is_full", "team_code"]
 
 
+class SubmissionSerializer(serializers.Serializer):
+    event_id = serializers.IntegerField()
+    submission_data = serializers.JSONField()
+    
+    class Meta:
+        fields = "__all__" 
 

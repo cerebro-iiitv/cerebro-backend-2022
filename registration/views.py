@@ -11,7 +11,7 @@ from accounts.authentication import MultipleTokenAuthentication
 from accounts.models import Account
 from django.shortcuts import render
 from events.models import Event
-from rest_framework import permissions, status
+from rest_framework import permissions, status, generics
 from rest_framework.authentication import BasicAuthentication, TokenAuthentication
 from rest_framework.exceptions import MethodNotAllowed
 from rest_framework.response import Response
@@ -25,8 +25,8 @@ from registration.models import (
     TeamParticipation)
 from registration.serializers import (
     IndividualParticipationSerializer,
+    SubmissionSerializer,
     TeamMemberSerializer,
-    TeamSubmissionSerializer,
     TeamParticipationSerializer)
 from registration.utils import validate_registration_data
 
@@ -74,28 +74,6 @@ class IndividualRegistrationViewSet(ModelViewSet):
         participant.save()
         participant_serialized = IndividualParticipationSerializer(participant)
         return Response(participant_serialized.data, status=status.HTTP_201_CREATED)
-    
-    def partial_update(self, request, pk=None):
-        serializer = self.serializer_class(data=request.data)
-        
-        if not serializer.is_valid():
-            return Response(serializer.error_messages, status=status.HTTP_400_BAD_REQUEST)
-        event = serializer.validated_data.get("event")
-        try:
-            obj = self.get_object()
-
-        except:
-            return Response({"error": "User not registered in the event"}, status=status.HTTP_400_BAD_REQUEST)
-        
-        if event.submission_closed:
-            return Response({"error": "Submissions are closed for this event"}, status=status.HTTP_400_BAD_REQUEST)
-        super().partial_update(request)
-
-        if not serializer.is_valid():
-            print(serializer.errors)
-            return Response(serializer.error_messages, status=status.HTTP_400_BAD_REQUEST)
-        
-        return Response(serializer.data, status=status.HTTP_201_CREATED)
     
 
 class TeamRegistrationViewSet(ModelViewSet):
@@ -174,35 +152,29 @@ class TeamRegistrationViewSet(ModelViewSet):
             },
             status=status.HTTP_201_CREATED
         )
-        
-class TeamSubmissionViewSet(ModelViewSet):
-    serializer_class = TeamSubmissionSerializer
-    queryset = TeamParticipation.objects.all()
-    permission_classes = [permissions.IsAuthenticated]
-    authentication_classes = [MultipleTokenAuthentication, TokenAuthentication]
     
-    def partial_update(self, request, pk=None):
+class SubmissionViewset(generics.GenericAPIView):
+    serializer_class = SubmissionSerializer
+    permission_classes = [permissions.IsAuthenticated]
+    
+    def post(self, request,*args, **kwargs):
         serializer = self.serializer_class(data=request.data)
         
         if not serializer.is_valid():
             return Response(serializer.error_messages, status=status.HTTP_400_BAD_REQUEST)
-        event = serializer.validated_data.get("event")
-        try:
-            obj = self.get_object()
-
-        except:
-            return Response({"error": "User not registered in the event"}, status=status.HTTP_400_BAD_REQUEST)
         
-        if event.submission_closed:
-            return Response({"error": "Submissions are closed for this event"}, status=status.HTTP_400_BAD_REQUEST)
-        super().partial_update(request)
-
-        if not serializer.is_valid():
-            print(serializer.errors)
-            return Response(serializer.error_messages, status=status.HTTP_400_BAD_REQUEST)
+        event_id = serializer.validated_data.get("event_id")
+        submission_data = serializer.validated_data.get("submission_data")
         
-        return Response(serializer.data, status=status.HTTP_201_CREATED)
-
+        event = Event.objects.get(id=event_id)
+        
+        if event.team_event == False:
+            submission = IndividualParticipation.objects.get(event_id=event_id)
+            submission.submission_data = submission_data
+            submission.save()
+        
+        return Response({'success': f"Submitted successfully for event {event.title}"}, status=status.HTTP_200_OK)
+         
 class TeamMemberViewSet(ModelViewSet):
     serializer_class = TeamMemberSerializer
     queryset = TeamMember.objects.all()
