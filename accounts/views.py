@@ -1,3 +1,4 @@
+import re
 import requests
 
 from rest_framework import generics
@@ -15,7 +16,17 @@ from django.contrib.auth.tokens import PasswordResetTokenGenerator
 
 from accounts.authentication import MultipleTokenAuthentication
 from accounts.models import Account, AuthToken
-from accounts.serializers import AccountDashboardSerializer, AccountSerializer, LoginSerializer, SetNewPasswordSerializer, ResetPasswordRequestSerializer, ChangePasswordSerializer
+from accounts.serializers import (
+    AccountDashboardSerializer, 
+    AccountSerializer,  
+    LoginSerializer, 
+    SetNewPasswordSerializer, 
+    ResetPasswordRequestSerializer, 
+    ChangePasswordSerializer, 
+    TeamParticipationSerializer,
+    IndividualParticipationSerializer,
+)
+
 from django.contrib.sites.shortcuts import get_current_site
 from django.urls import reverse
 
@@ -24,6 +35,7 @@ from .utils import Util
 from django.utils.encoding import smart_str, force_str, smart_bytes, DjangoUnicodeDecodeError
 from django.utils.http import urlsafe_base64_decode, urlsafe_base64_encode
 from django.http import HttpResponsePermanentRedirect
+from registration.models import TeamMember, TeamParticipation, IndividualParticipation
 import os
 
 
@@ -89,31 +101,37 @@ class AccountViewSet(ModelViewSet):
     permission_classes = [permissions.IsAuthenticated]
     authentication_classes = [MultipleTokenAuthentication]
 
-class DashboardViewSet(ModelViewSet):
+class DashboardView(APIView):
     serializer_class = AccountDashboardSerializer
     queryset = Account.objects.all()
-    http_method_names = ["get", "put", "patch", "post", "head"]
+    http_method_names = ["get"]
     permission_classes = [permissions.IsAuthenticated]
     authentication_classes = [MultipleTokenAuthentication]
 
-    def list(self, request):
-        raise MethodNotAllowed("GET", detail="Method 'GET' not allowed without lookup")
+    def get(self, request, *args, **kwargs):
 
-    def retrieve(self, request, *args, **kwargs):
+        account = request.user
         
-        try:
-            account = Account.objects.get(pk=kwargs.get("pk"))
-        except:
-            return Response(
-                {"Error": "Permission Denied"}, status=status.HTTP_403_FORBIDDEN
-            )
+        data = dict()
 
-        if request.user == account:
-            return super().retrieve(request, *args, **kwargs)
-        else:
-            return Response(
-                {"Error": "Permission Denied"}, status=status.HTTP_403_FORBIDDEN
-            )
+        data["personal_details"] = AccountDashboardSerializer(account).data
+    
+        individual_participations = IndividualParticipation.objects.filter(account=account)
+
+        individual_participations_data = IndividualParticipationSerializer(individual_participations, many = True).data
+
+        teams = TeamMember.objects.filter(account=account).values_list("team", flat = True)
+
+        teams = TeamParticipation.objects.filter(id__in = teams)
+
+        teams_data = TeamParticipationSerializer(teams, many=True).data
+
+        data["registered_events"] = [*individual_participations_data, *teams_data]
+
+        return Response(
+            data,
+            status = status.HTTP_200_OK
+        )
 
 class LoginView(APIView):
     permission_classes = [AllowAny]
