@@ -1,12 +1,13 @@
+from numpy import source
 from rest_framework import serializers
 
 from accounts.models import Account
-from registration.models import TeamMember
 from django.contrib.auth.tokens import PasswordResetTokenGenerator
 from django.utils.encoding import smart_str, force_str, smart_bytes, DjangoUnicodeDecodeError
 from django.utils.http import urlsafe_base64_decode, urlsafe_base64_encode
 from rest_framework.exceptions import AuthenticationFailed
 from docs.models import ProofPDF
+from registration.models import IndividualParticipation, TeamParticipation, TeamMember
 
 class AccountSerializer(serializers.ModelSerializer):
     proof_id = serializers.PrimaryKeyRelatedField(queryset = ProofPDF.objects.all(), many = False)
@@ -17,16 +18,6 @@ class AccountSerializer(serializers.ModelSerializer):
         extra_kwargs = {
             'proof_id': {'write_only': True},
         }
-
-class RegisteredEventSerializer(serializers.ModelSerializer):
-    event_name = serializers.CharField(source="event.title")
-    team_code = serializers.CharField(source="team.team_code")
-    start_time = serializers.CharField(source="event.start_time")
-    end_time = serializers.CharField(source="event.end_time")
-
-    class Meta:
-        model = TeamMember
-        fields = ["event_name", "team_code", "start_time", "end_time", "id"]
 
 
 class LoginSerializer(serializers.Serializer):
@@ -69,8 +60,50 @@ class ChangePasswordSerializer(serializers.Serializer):
     class Meta:
         fields = ['old_password', 'new_password1', 'new_password2']
 
-class AccountDashboardSerializer(serializers.ModelSerializer):
+class IndividualParticipationSerializer(serializers.ModelSerializer):
+    event_title = serializers.CharField(source = "event.title")
+    start_time = serializers.CharField(source = "event.start_time")
+    end_time = serializers.CharField(source = "event.end_time")
+    is_team_event = serializers.BooleanField(source="event.team_event")
+    class Meta:
+        model = IndividualParticipation
+        fields = ["event_title", "start_time", "end_time", "is_team_event", "registration_data", "submission_data"]
 
+class TeamMemberSerializer(serializers.ModelSerializer):
+    first_name = serializers.CharField(source = "account.first_name")
+    last_name = serializers.CharField(source = "account.last_name")
+    email = serializers.CharField(source = "account.email")
+    
+    class Meta:
+        model = TeamMember
+        fields = ["first_name", "last_name", "email", "registration_data"]
+
+class TeamParticipationSerializer(serializers.ModelSerializer):
+    team_member = TeamMemberSerializer(many = True)
+    event_title = serializers.CharField(source = "event.title")
+    start_time = serializers.CharField(source = "event.start_time")
+    end_time = serializers.CharField(source = "event.end_time")
+    max_size = serializers.IntegerField(source = "event.team_size")
+    is_team_event = serializers.BooleanField(source="event.team_event")
+    team_captain = serializers.CharField(source = "team_captain.email")
+    class Meta:
+        model = TeamParticipation
+        fields = [
+            "event_title", 
+            "start_time", 
+            "end_time", 
+            "is_team_event",
+            "max_size",
+            "team_captain",
+            "team_name",
+            "current_size",
+            "is_full",
+            "team_code",
+            "submission_data",
+            "team_member"
+        ]
+
+class AccountDashboardSerializer(serializers.ModelSerializer):
     class Meta:
         model = Account
         fields = ["first_name", "last_name","institute_name", "email", "mobile_number"]
