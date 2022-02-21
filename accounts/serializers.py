@@ -70,11 +70,7 @@ class ChangePasswordSerializer(serializers.Serializer):
         fields = ['old_password', 'new_password1', 'new_password2']
 
 class AccountDashboardSerializer(serializers.ModelSerializer):
-    user_team = RegisteredEventSerializer(many=True)
-    first_name = serializers.CharField(source="user.first_name")
-    last_name = serializers.CharField(source="user.last_name")
-    email = serializers.CharField(source="user.email")
 
     class Meta:
         model = Account
-        fields = ["first_name", "last_name", "email", "mobile_number", "profile_pic", "user_team"]
+        fields = ["first_name", "last_name","institute_name", "email", "mobile_number"]

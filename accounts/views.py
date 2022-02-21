@@ -100,12 +100,19 @@ class DashboardViewSet(ModelViewSet):
         raise MethodNotAllowed("GET", detail="Method 'GET' not allowed without lookup")
 
     def retrieve(self, request, *args, **kwargs):
-        account = Account.objects.get(pk=kwargs.get("pk"))
-        if request.user == account.user:
+        
+        try:
+            account = Account.objects.get(pk=kwargs.get("pk"))
+        except:
+            return Response(
+                {"Error": "Permission Denied"}, status=status.HTTP_403_FORBIDDEN
+            )
+
+        if request.user == account:
             return super().retrieve(request, *args, **kwargs)
         else:
             return Response(
-                {"Error": "Permission Denied"}, status=status.HTTP_401_UNAUTHORIZED
+                {"Error": "Permission Denied"}, status=status.HTTP_403_FORBIDDEN
             )
 
 class LoginView(APIView):
