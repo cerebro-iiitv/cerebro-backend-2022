@@ -28,7 +28,7 @@ from registration.serializers import (
     SubmissionSerializer,
     TeamMemberSerializer,
     TeamParticipationSerializer)
-from registration.utils import validate_registration_data
+from registration.utils import validate_registration_data, validate_submission_data
 
 
 class IndividualRegistrationViewSet(ModelViewSet):
@@ -61,7 +61,7 @@ class IndividualRegistrationViewSet(ModelViewSet):
         # Validating registration data provided by the user
         registration_attributes = event.registration_attributes
         registration_data = serializer.validated_data.get("registration_data", None)
-        error_message = validate_registration_data(registration_attributes, registration_data)
+        error_message = validate_submission_data(registration_attributes, registration_data)
 
         if error_message is not None:
             return Response(error_message, status=status.HTTP_400_BAD_REQUEST)
@@ -163,17 +163,34 @@ class SubmissionViewset(generics.GenericAPIView):
         if not serializer.is_valid():
             return Response(serializer.error_messages, status=status.HTTP_400_BAD_REQUEST)
         
+        
         event_id = serializer.validated_data.get("event_id")
         submission_data = serializer.validated_data.get("submission_data")
         
         event = Event.objects.get(id=event_id)
         
-        if event.team_event == False:
-            submission = IndividualParticipation.objects.get(event_id=event_id)
-            submission.submission_data = submission_data
-            submission.save()
+        if not IndividualParticipation.objects.filter(account_id=request.user, event=event).exists():
+            return Response({"error": f"User is not registered in the event {event.title}"}, status=status.HTTP_400_BAD_REQUEST)
         
-        return Response({'success': f"Submitted successfully for event {event.title}"}, status=status.HTTP_200_OK)
+        
+        submission_attributes = event.submission_attributes
+        submission_data = serializer.validated_data.get("submission_data", None)
+        error_message = validate_submission_data(submission_attributes, submission_data)
+
+        if error_message is not None:
+            return Response(error_message, status=status.HTTP_400_BAD_REQUEST)
+        
+        if event.submission_closed == False:
+        
+            if event.team_event == False:
+                submission = IndividualParticipation.objects.get(event_id=event_id, account_id =request.user.id)
+                submission.submission_data = submission_data
+                submission.save()
+            
+            return Response({'success': f"Submitted successfully for event {event.title}"}, status=status.HTTP_200_OK)
+        else:
+            return Response({"error": f"Submission has been closed for {event.title}"}, status=status.HTTP_400_BAD_REQUEST)
+            
          
 class TeamMemberViewSet(ModelViewSet):
     serializer_class = TeamMemberSerializer
