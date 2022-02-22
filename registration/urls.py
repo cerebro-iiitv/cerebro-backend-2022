@@ -15,7 +15,6 @@ router = SimpleRouter()
 router.register("individual-registration", IndividualRegistrationViewSet, basename="api-individual-registration")
 router.register("team", TeamRegistrationViewSet, basename="api-create-team")
 router.register("teammember", TeamMemberViewSet, basename="api-team-member")
-# router.register("submission", SubmissionViewset, basename="api-submission")
 # from registration.views import TeamRegistrationViewSet, CsvGenerate, TeamData, index
 
 # router = SimpleRouter()

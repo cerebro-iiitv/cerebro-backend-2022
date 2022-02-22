@@ -61,7 +61,7 @@ class IndividualRegistrationViewSet(ModelViewSet):
         # Validating registration data provided by the user
         registration_attributes = event.registration_attributes
         registration_data = serializer.validated_data.get("registration_data", None)
-        error_message = validate_submission_data(registration_attributes, registration_data)
+        error_message = validate_registration_data(registration_attributes, registration_data)
 
         if error_message is not None:
             return Response(error_message, status=status.HTTP_400_BAD_REQUEST)
