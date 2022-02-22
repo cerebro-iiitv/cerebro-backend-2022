@@ -22,14 +22,6 @@ class TeamParticipationSerializer(serializers.ModelSerializer):
         model = TeamParticipation
         fields = "__all__" 
         read_only_fields = ["team_creator", "current_size", "is_full", "team_code"]
-        
-class TeamSubmissionSerializer(serializers.ModelSerializer):
-    team_captain = TeamMemberSerializer(many=False, read_only= True)
-    class Meta:
-        model = TeamParticipation
-        fields = "__all__" 
-        read_only_fields = ["team_creator", "current_size", "is_full", "team_code"]
-
 
 class SubmissionSerializer(serializers.Serializer):
     event_id = serializers.IntegerField()
