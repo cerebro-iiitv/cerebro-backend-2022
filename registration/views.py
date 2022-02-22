@@ -165,7 +165,7 @@ class SubmissionViewset(generics.GenericAPIView):
         
         
         event_id = serializer.validated_data.get("event_id")
-        submission_data = serializer.validated_data.get("submission_data")
+        submission_data = serializer.validated_data.get("submission_data", None)
         
         event = Event.objects.get(id=event_id)
         
@@ -174,15 +174,14 @@ class SubmissionViewset(generics.GenericAPIView):
         
         
         submission_attributes = event.submission_attributes
-        submission_data = serializer.validated_data.get("submission_data", None)
         error_message = validate_submission_data(submission_attributes, submission_data)
 
         if error_message is not None:
             return Response(error_message, status=status.HTTP_400_BAD_REQUEST)
         
-        if event.submission_closed == False:
+        if not event.submission_closed:
         
-            if event.team_event == False:
+            if not event.team_event:
                 submission = IndividualParticipation.objects.get(event_id=event_id, account_id =request.user.id)
                 submission.submission_data = submission_data
                 submission.save()
