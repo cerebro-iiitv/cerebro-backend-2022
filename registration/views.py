@@ -209,7 +209,7 @@ class TeamMemberViewSet(ModelViewSet):
         team.current_size += 1
 
         if team.current_size == event.team_size:
-            team.isfull = True
+            team.is_full = True
 
         team.save()
 
