@@ -1,3 +1,4 @@
+from unicodedata import name
 from django.urls import path
 from rest_framework.urlpatterns import format_suffix_patterns
 from . import views
@@ -5,6 +6,7 @@ from rest_framework.routers import DefaultRouter
 
 router = DefaultRouter()
 router.register(r'users', views.AccountViewSet, basename='user')
+# router.register(r'dashboard', views.DashboardViewSet, basename='dashboard')
 
 
 urlpatterns = [
@@ -18,6 +20,7 @@ urlpatterns = [
     path('password-reset/', views.SetNewPasswordAPIView.as_view(),
          name='password-reset-complete'),
     path('change-password/', views.ChangePasswordView.as_view(), name='change-password'),
+    path('dashboard/', views.DashboardView.as_view(), name="dashboard"),
 ]
 
 urlpatterns = format_suffix_patterns(urlpatterns)
