@@ -34,11 +34,24 @@ class EventViewSet(ModelViewSet):
 
             for data in zip_data:
                 event = data[0]
-                if IndividualParticipation.objects.filter(event=event).exists():
-                    
+                try:
+                    participation = IndividualParticipation.objects.get(event=event, account=request.user)
                     data[1]["is_registered"] = True
-                elif TeamMember.objects.filter(event=event).exists():
-                    data[1]["is_registered"] = True
+                    if participation.submission_data is not None:
+                       data[1]["submitted"] = True
+                    else:
+                        data[1]["submitted"] = False
+                except IndividualParticipation.DoesNotExist:
+                    try:
+                        team_member = TeamMember.objects.get(event=event, account=request.user)
+                        data[1]["is_registered"] = True
+                        if team_member.team.submission_data is not None:
+                            data[1]["submitted"] = True
+                        else:
+                            data[1]["submitted"] = False
+                    except TeamMember.DoesNotExist:
+                        data[1]["is_registered"] = False
+                        data[1]["submitted"] = False 
 
                 response_data.append(data[1])
 
@@ -51,10 +64,24 @@ class EventViewSet(ModelViewSet):
             event = self.get_object()
             event_data = self.serializer_class(event).data
 
-            if IndividualParticipation.objects.filter(event=event).exists():    
+            try:
+                participation = IndividualParticipation.objects.get(event=event, account=request.user)
                 event_data["is_registered"] = True
-            elif TeamMember.objects.filter(event=event).exists():
-                event_data["is_registered"] = True
+                if participation.submission_data is not None:
+                    event_data["submitted"] = True
+                else:
+                    event_data["submitted"] = False
+            except IndividualParticipation.DoesNotExist:
+                try:
+                    team_member = TeamMember.objects.get(event=event, account=request.user)
+                    event_data["is_registered"] = True
+                    if team_member.team.submission_data is not None:
+                        event_data["submitted"] = True
+                    else:
+                        event_data["submitted"] = False
+                except TeamMember.DoesNotExist:
+                    event_data["is_registered"] = False
+                    event_data["submitted"] = False 
 
 
             return Response(event_data, status = status.HTTP_200_OK)
