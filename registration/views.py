@@ -186,9 +186,6 @@ class SubmissionViewset(generics.GenericAPIView):
                 submission.save()
                 
                 return Response({'success': f"Submitted successfully for event {event.title}"}, status=status.HTTP_200_OK)
-                
-            else:
-                return Response({"error": f"{event.title} is not an individual participation event"}, status=status.HTTP_400_BAD_REQUEST)
             
         else:
             return Response({"error": f"Submission has been closed for {event.title}"}, status=status.HTTP_400_BAD_REQUEST)
