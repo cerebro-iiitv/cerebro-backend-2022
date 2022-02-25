@@ -168,10 +168,21 @@ class SubmissionViewset(generics.GenericAPIView):
         submission_data = serializer.validated_data.get("submission_data", None)
         
         event = Event.objects.get(id=event_id)
+        is_team_event = event.team_event # True for team event, False for individual event
         
-        if not IndividualParticipation.objects.filter(account_id=request.user, event=event).exists():
-            return Response({"error": f"User is not registered in the event {event.title}"}, status=status.HTTP_400_BAD_REQUEST)
+        if not is_team_event:
+            if not IndividualParticipation.objects.filter(account_id=request.user, event=event).exists():
+                return Response({"error": f"User is not registered in the event {event.title}"}, status=status.HTTP_400_BAD_REQUEST)
         
+        
+        if is_team_event:
+            try:
+                team_code = self._get_user_teamCode(user=request.user, event_id= event_id)
+                if not TeamParticipation.objects.filter(event_id=event_id, team_code= team_code).exists():
+                    raise(Exception("User not found!"))
+            except:
+                return Response({"error": f"User is not registered in the event {event.title}"}, status=status.HTTP_400_BAD_REQUEST)
+                
         if not event.submission_closed:
             
             submission_attributes = event.submission_attributes
@@ -180,7 +191,7 @@ class SubmissionViewset(generics.GenericAPIView):
             if error_message is not None:
                 return Response(error_message, status=status.HTTP_400_BAD_REQUEST)
             
-            if not event.team_event:
+            if not is_team_event:
                 
                 submission = IndividualParticipation.objects.get(event_id=event_id, account_id =request.user.id)
                 submission.submission_data = submission_data
@@ -188,8 +199,24 @@ class SubmissionViewset(generics.GenericAPIView):
                 
                 return Response({'success': f"Submitted successfully for event {event.title}"}, status=status.HTTP_200_OK)
             
+            else:
+                team = TeamParticipation.objects.get(event_id=event_id, team_code=team_code)
+                
+                if team.is_full :
+                    submission = TeamParticipation.objects.get(event_id=event_id, team_code= team_code)
+                    submission.submission_data = submission_data
+                    submission.save()
+                    return Response({'success': f"Submitted successfully for event {event.title}"}, status=status.HTTP_200_OK)
+                
+                else:
+                    return Response({"error": f"To submit for {event.title}, you need a team of size {event.team_size}!"}, status=status.HTTP_400_BAD_REQUEST)
+                      
         else:
             return Response({"error": f"Submission has been closed for {event.title}"}, status=status.HTTP_400_BAD_REQUEST)
+        
+    def _get_user_teamCode(self, user, event_id):
+        obj = TeamMember.objects.get(account_id = user.id, event_id = event_id)
+        return obj.team.team_code
             
          
 class TeamMemberViewSet(ModelViewSet):
@@ -248,7 +275,7 @@ class TeamMemberViewSet(ModelViewSet):
         team.current_size += 1
 
         if team.current_size == event.team_size:
-            team.isfull = True
+            team.is_full = True
 
         team.save()
 
