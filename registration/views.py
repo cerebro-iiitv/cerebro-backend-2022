@@ -172,21 +172,24 @@ class SubmissionViewset(generics.GenericAPIView):
         if not IndividualParticipation.objects.filter(account_id=request.user, event=event).exists():
             return Response({"error": f"User is not registered in the event {event.title}"}, status=status.HTTP_400_BAD_REQUEST)
         
-        
-        submission_attributes = event.submission_attributes
-        error_message = validate_submission_data(submission_attributes, submission_data)
-
-        if error_message is not None:
-            return Response(error_message, status=status.HTTP_400_BAD_REQUEST)
-        
         if not event.submission_closed:
-        
+            
             if not event.team_event:
+                submission_attributes = event.submission_attributes
+                error_message = validate_submission_data(submission_attributes, submission_data)
+                
+                if error_message is not None:
+                    return Response(error_message, status=status.HTTP_400_BAD_REQUEST)
+                
                 submission = IndividualParticipation.objects.get(event_id=event_id, account_id =request.user.id)
                 submission.submission_data = submission_data
                 submission.save()
+                
+                return Response({'success': f"Submitted successfully for event {event.title}"}, status=status.HTTP_200_OK)
+                
+            else:
+                return Response({"error": f"{event.title} is not an individual participation event"}, status=status.HTTP_400_BAD_REQUEST)
             
-            return Response({'success': f"Submitted successfully for event {event.title}"}, status=status.HTTP_200_OK)
         else:
             return Response({"error": f"Submission has been closed for {event.title}"}, status=status.HTTP_400_BAD_REQUEST)
             
@@ -247,7 +250,7 @@ class TeamMemberViewSet(ModelViewSet):
         team.current_size += 1
 
         if team.current_size == event.team_size:
-            team.is_full = True
+            team.isfull = True
 
         team.save()
 
