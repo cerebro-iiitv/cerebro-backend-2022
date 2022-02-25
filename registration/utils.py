@@ -48,12 +48,12 @@ def validate_registration_data(registration_attributes, registration_data):
     return None
 
 def validate_submission_data(submission_attributes, submission_data):
-    #Checking if the event require registration details
+    #Checking if the event require submission details
 
 
     if submission_attributes is not None:
 
-        #Checking if registration details is provided
+        #Checking if submission details is provided
         if submission_data is None:
             error_message = {"error": "Submission data not provided"}
             return error_message
@@ -63,7 +63,7 @@ def validate_submission_data(submission_attributes, submission_data):
             error_message = {"error": "Invalid details provided for event submission"}
             return error_message
         
-        #Iterate through each registration details and verify the input type provided
+        #Iterate through each submission details and verify the input type provided
         for key in submission_data.keys():
             if submission_attributes.get(key) == "int":
                 if type(submission_data.get(key)) is not int:
