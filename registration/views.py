@@ -174,12 +174,13 @@ class SubmissionViewset(generics.GenericAPIView):
         
         if not event.submission_closed:
             
-            if not event.team_event:
-                submission_attributes = event.submission_attributes
-                error_message = validate_submission_data(submission_attributes, submission_data)
+            submission_attributes = event.submission_attributes
+            error_message = validate_submission_data(submission_attributes, submission_data)
                 
-                if error_message is not None:
-                    return Response(error_message, status=status.HTTP_400_BAD_REQUEST)
+            if error_message is not None:
+                return Response(error_message, status=status.HTTP_400_BAD_REQUEST)
+            
+            if not event.team_event:
                 
                 submission = IndividualParticipation.objects.get(event_id=event_id, account_id =request.user.id)
                 submission.submission_data = submission_data
