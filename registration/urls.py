@@ -7,6 +7,7 @@ from rest_framework.urlpatterns import format_suffix_patterns
 from registration.views import (
     IndividualRegistrationViewSet,
     TeamRegistrationViewSet,
+    SubmissionViewset,
     TeamMemberViewSet
 )
 
@@ -19,7 +20,9 @@ router.register("teammember", TeamMemberViewSet, basename="api-team-member")
 # router = SimpleRouter()
 # router.register("team-register", TeamRegistrationViewSet, basename="api-team")
 
-urlpatterns = []
+urlpatterns = [
+    path("submission/", SubmissionViewset.as_view(), name="submission"),
+]
 
 # urlpatterns = [
 #     path("", index, name="index"),
