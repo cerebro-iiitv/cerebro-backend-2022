@@ -7,13 +7,12 @@ from accounts.models import Account
 
 
 class AccountSerializer(serializers.ModelSerializer):
-    proof_id = serializers.PrimaryKeyRelatedField(queryset = ProofPDF.objects.all(), many = False)
+    proof = serializers.PrimaryKeyRelatedField(queryset = ProofPDF.objects.all(), many = False)
     class Meta:
         model = Account
-        fields = ["first_name", "last_name", "email", "mobile_number", "institute_name","address","degree","password","proof", "proof_id"]
-        read_only_fields = ("proof", )
+        fields = ["first_name", "last_name", "email", "mobile_number", "institute_name","address","degree","password","proof"]
         extra_kwargs = {
-            'proof_id': {'write_only': True},
+            'proof': {'write_only': True},
         }
 
 
