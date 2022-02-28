@@ -232,14 +232,18 @@ class TeamMemberViewSet(ModelViewSet):
             return Response(serializer.error_messages, status=status.HTTP_400_BAD_REQUEST)
 
         # Validating team code
+        event_id = request.data.get("event_id")
         team_code = serializer.validated_data.get("team").get("team_code")
-        print(team_code)
+        
         try:
             team = TeamParticipation.objects.get(team_code=team_code)
         except TeamParticipation.DoesNotExist:
             return Response({"error": "Invalid team code"}, status=status.HTTP_400_BAD_REQUEST)
 
         event = team.event
+        
+        if event_id != event.id:
+            return Response({"error": f"Invalid team code {team_code} for event {event.title}."}, status=status.HTTP_400_BAD_REQUEST)
 
         # Checking if given event is team based event or not
         if event.team_size == 1:
