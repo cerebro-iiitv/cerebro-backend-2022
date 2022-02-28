@@ -24,6 +24,7 @@ class EventSerializer(serializers.ModelSerializer):
             "event_type",
             "team_event",
             "title",
+            "short_name",
             "description",
             "prize",
             "team_size",
