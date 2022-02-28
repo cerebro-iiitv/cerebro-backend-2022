@@ -1,5 +1,4 @@
 from django.db import models
-from phonenumber_field.modelfields import PhoneNumberField
 
 
 class Event(models.Model):
@@ -47,7 +46,7 @@ class Contact(models.Model):
     event = models.ForeignKey(Event, on_delete=models.CASCADE, related_name="events")
     name = models.CharField(max_length=100, blank=False)
     role = models.CharField(max_length=15, choices=ROLE_CHOICES, blank=False)
-    phone_number = PhoneNumberField(blank=True)
+    phone_number = models.CharField(max_length=13, blank=True, null=True)
 
     def __str__(self):
         return self.event.title + " | " + self.name

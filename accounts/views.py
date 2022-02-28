@@ -46,7 +46,7 @@ class SignUpView(APIView):
             return Response(serializer.errors)
 
         user_data = serializer.validated_data
-        proof = user_data.pop("proof_id", None)
+        proof = user_data.get("proof", None)
         email = user_data.get("email", None)
 
         if proof:
@@ -55,7 +55,6 @@ class SignUpView(APIView):
         else:
             return Response({"error": "Invalid Pdf"}, status=status.HTTP_400_BAD_REQUEST)
 
-        user_data["proof"] = proof
         user = Account.objects.create_user(**user_data)
 
         useremail = Account.objects.get(email=user_data['email'])
