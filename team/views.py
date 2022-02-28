@@ -25,6 +25,6 @@ class TeamViewSet(ModelViewSet):
 
         for choice in team_choices:
             team = Team.objects.filter(team=choice[0]).order_by("priority")
-            data[choice[1]] = self.serializer_class(team, many=True).data
+            data[choice[1]] = self.serializer_class(team, many=True, context={"request": request}).data
 
         return Response(data, status=status.HTTP_200_OK)
