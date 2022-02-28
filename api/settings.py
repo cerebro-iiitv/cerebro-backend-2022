@@ -167,8 +167,6 @@ EMAIL_PORT = 587
 EMAIL_HOST_USER = config('EMAIL_HOST_USER')
 EMAIL_HOST_PASSWORD = config('EMAIL_HOST_PASSWORD')
 
-# django_heroku.settings(locals())
-
 # S3 Storage Configurations
 AWS_ACCESS_KEY_ID = config("AWS_ACCESS_KEY_ID")
 AWS_SECRET_ACCESS_KEY = config("AWS_SECRET_ACCESS_KEY")
@@ -196,3 +194,5 @@ PRIVATE_FILE_STORAGE = "api.storage_backends.PrivateMediaStorage"
 
 # Link expiration time in seconds
 AWS_QUERYSTRING_EXPIRE = config("AWS_QUERYSTRING_EXPIRE")
+
+django_heroku.settings(locals())

@@ -1,5 +1,7 @@
 from rest_framework import serializers
+
 from docs.models import PDF, ProofPDF
+
 
 class ProofFileUploadSerializer(serializers.ModelSerializer):
     
@@ -11,9 +13,6 @@ class ProofFileUploadSerializer(serializers.ModelSerializer):
             'pdf': {'write_only': True},
         }
 
-    # def create(self, validated_data):
-    #     print(validated_data)
-    #     return super().create(validated_data)
 class FileUploadSerializer(serializers.ModelSerializer):
     
     class Meta:

@@ -1,5 +1,6 @@
+from api.storage_backends import PrivateMediaStorage
 from django.db import models
-from api.storage_backends import PrivateMediaStorage, PublicMediaStorage
+
 
 class ProofPDF(models.Model):
     email = models.CharField(max_length=255)

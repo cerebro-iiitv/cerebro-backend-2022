@@ -26,7 +26,6 @@ from accounts.serializers import (AccountDashboardSerializer,
                                   ResetPasswordRequestSerializer,
                                   SetNewPasswordSerializer,
                                   TeamParticipationSerializer)
-
 from accounts.utils import Util
 
 

@@ -1,4 +1,3 @@
-from unicodedata import name
 from django.urls import path
 from rest_framework.urlpatterns import format_suffix_patterns
 from . import views
@@ -6,7 +5,6 @@ from rest_framework.routers import DefaultRouter
 
 router = DefaultRouter()
 router.register(r'users', views.AccountViewSet, basename='user')
-# router.register(r'dashboard', views.DashboardViewSet, basename='dashboard')
 
 
 urlpatterns = [

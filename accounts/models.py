@@ -1,16 +1,12 @@
-from django.db import models
-from django.contrib.auth.models import User
-from six import MAXSIZE, python_2_unicode_compatible
-from django.utils.translation import gettext_lazy as _
-from django.contrib.auth.models import User
-from rest_framework.authtoken.models import Token
-from accounts.managers import AccountManager
-from django.contrib.auth.models import PermissionsMixin
 from django.contrib.auth.base_user import AbstractBaseUser
+from django.contrib.auth.models import PermissionsMixin
 from django.core.mail import send_mail
-from rest_framework_simplejwt.tokens import RefreshToken
-
+from django.db import models
+from django.utils.translation import gettext_lazy as _
 from docs.models import ProofPDF
+from rest_framework.authtoken.models import Token
+
+from accounts.managers import AccountManager
 
 
 class Account(AbstractBaseUser, PermissionsMixin):
