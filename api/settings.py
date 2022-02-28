@@ -46,6 +46,7 @@ INSTALLED_APPS = [
     "django.contrib.sessions",
     "django.contrib.messages",
     "django.contrib.staticfiles",
+    "storages",
 ]
 
 
@@ -163,7 +164,35 @@ EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
 EMAIL_HOST = 'smtp.gmail.com'
 EMAIL_USE_TLS = True
 EMAIL_PORT = 587
-EMAIL_HOST_USER = os.environ.get('EMAIL_HOST_USER')
-EMAIL_HOST_PASSWORD = os.environ.get('EMAIL_HOST_PASSWORD')
+EMAIL_HOST_USER = config('EMAIL_HOST_USER')
+EMAIL_HOST_PASSWORD = config('EMAIL_HOST_PASSWORD')
 
-django_heroku.settings(locals())
+# django_heroku.settings(locals())
+
+# S3 Storage Configurations
+AWS_ACCESS_KEY_ID = config("AWS_ACCESS_KEY_ID")
+AWS_SECRET_ACCESS_KEY = config("AWS_SECRET_ACCESS_KEY")
+AWS_STORAGE_BUCKET_NAME = config("AWS_STORAGE_BUCKET_NAME")
+AWS_S3_CUSTOM_DOMAIN = "%s.s3.amazonaws.com" % AWS_STORAGE_BUCKET_NAME
+AWS_DEFAULT_ACL = None
+AWS_S3_OBJECT_PARAMETERS = {
+    "CacheControl": "max-age=86400",
+}
+AWS_S3_REGION_NAME = config("AWS_S3_REGION_NAME")
+AWS_S3_SIGNATURE_VERSION = config("AWS_S3_SIGNATURE_VERSION")
+AWS_LOCATION = "static"
+S3_URL = "https://%s" % AWS_S3_CUSTOM_DOMAIN
+
+
+
+# public media settings
+DEFAULT_FILE_STORAGE = "api.storage_backends.PublicMediaStorage"
+MEDIA_DIRECTORY = "/media/"
+MEDIA_URL = S3_URL + MEDIA_DIRECTORY
+
+# private media settings
+PRIVATE_MEDIA_LOCATION = "private"
+PRIVATE_FILE_STORAGE = "api.storage_backends.PrivateMediaStorage"
+
+# Link expiration time in seconds
+AWS_QUERYSTRING_EXPIRE = config("AWS_QUERYSTRING_EXPIRE")

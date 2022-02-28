@@ -1,4 +1,4 @@
-from rest_framework.viewsets import ModelViewSet
+from rest_framework.viewsets import ReadOnlyModelViewSet
 from rest_framework import status
 from rest_framework.response import Response
 
@@ -6,9 +6,8 @@ from team.models import Team
 from team.serializers import TeamSerializer
 
 
-class TeamViewSet(ModelViewSet):
+class TeamViewSet(ReadOnlyModelViewSet):
     serializer_class = TeamSerializer
-    http_method_names = ["get"]
 
     def list(self, request, *args, **kwargs):
         team_choices = [

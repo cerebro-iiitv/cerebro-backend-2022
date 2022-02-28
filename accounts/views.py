@@ -1,41 +1,33 @@
-import re
 import requests
-
-from rest_framework import generics
+from django.contrib.auth import authenticate, login
 from django.contrib.auth.models import User
-from django.shortcuts import render, redirect
-from rest_framework import permissions, status
-from rest_framework.exceptions import MethodNotAllowed
+from django.contrib.auth.tokens import PasswordResetTokenGenerator
+from django.http import HttpResponsePermanentRedirect
+from django.shortcuts import render
+from django.urls import reverse
+from django.utils.encoding import (DjangoUnicodeDecodeError, force_str,
+                                   smart_bytes)
+from django.utils.http import urlsafe_base64_decode, urlsafe_base64_encode
+from registration.models import (IndividualParticipation, TeamMember,
+                                 TeamParticipation)
+from rest_framework import generics, permissions, status
+from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 from rest_framework.utils import json
 from rest_framework.views import APIView
-from django.contrib.auth import authenticate, login, logout
 from rest_framework.viewsets import ModelViewSet
-from rest_framework.permissions import AllowAny, IsAuthenticated
-from django.contrib.auth.tokens import PasswordResetTokenGenerator
 
 from accounts.authentication import MultipleTokenAuthentication
 from accounts.models import Account, AuthToken
-from accounts.serializers import (
-    AccountDashboardSerializer, 
-    AccountSerializer,  
-    LoginSerializer, 
-    SetNewPasswordSerializer, 
-    ResetPasswordRequestSerializer, 
-    ChangePasswordSerializer, 
-    TeamParticipationSerializer,
-    IndividualParticipationSerializer,
-)
+from accounts.serializers import (AccountDashboardSerializer,
+                                  AccountSerializer, ChangePasswordSerializer,
+                                  IndividualParticipationSerializer,
+                                  LoginSerializer,
+                                  ResetPasswordRequestSerializer,
+                                  SetNewPasswordSerializer,
+                                  TeamParticipationSerializer)
 
-from django.contrib.sites.shortcuts import get_current_site
-from django.urls import reverse
-
-from .utils import Util
-from django.utils.encoding import force_str, smart_bytes, DjangoUnicodeDecodeError
-from django.utils.http import urlsafe_base64_decode, urlsafe_base64_encode
-from django.http import HttpResponsePermanentRedirect
-from registration.models import TeamMember, TeamParticipation, IndividualParticipation
-import os
+from accounts.utils import Util
 
 
 class CustomRedirect(HttpResponsePermanentRedirect):
@@ -56,7 +48,7 @@ class SignUpView(APIView):
 
         user_data = serializer.validated_data
         proof = user_data.pop("proof_id", None)
-        email = user_data.get("email")
+        email = user_data.get("email", None)
 
         if proof:
             if proof.email != email:
@@ -64,18 +56,20 @@ class SignUpView(APIView):
         else:
             return Response({"error": "Invalid Pdf"}, status=status.HTTP_400_BAD_REQUEST)
 
-        user_data["proof"] = proof.pdf
+        user_data["proof"] = proof
         user = Account.objects.create_user(**user_data)
 
         useremail = Account.objects.get(email=user_data['email'])
         token = AuthToken.objects.create(user=user)
-        current_site = get_current_site(request).domain
-        relativeLink = reverse('email-verify')
-        absurl = 'http://'+current_site+relativeLink+"?token="+str(token)
+        
+        # Fetching the url of domain accessing the api
+        request_host = request.headers.get("Origin", request.get_host())
+        relativeLink = reverse('email-verify') 
+        absurl = 'http://' + request_host + relativeLink + "?token=" + str(token)
         email_body = 'Hi ' + user_data['first_name'] + ',\n'\
             'Click the link below to verify your email \n' + absurl
         data = {'email_body': email_body, 'to_email': useremail.email,
-                'email_subject': 'Verify your email'}
+                'email_subject': 'Cerebro2022 | Verify your email'}
 
         Util.send_email(data)
         return Response({"status": "User created successfully"}, status=status.HTTP_201_CREATED)
@@ -143,6 +137,13 @@ class LoginView(APIView):
 
         email = serializer.validated_data.get("email")
         password = serializer.validated_data.get("password")
+
+        try:
+            user = Account.objects.get(email = email)
+            if not user.is_verified:
+                return Response({"status": "User not verified"}, status=status.HTTP_403_FORBIDDEN)
+        except Account.DoesNotExist:
+            return Response({"status": "User not found"}, status=status.HTTP_404_NOT_FOUND)
 
         user = authenticate(email=email, password=password)
 

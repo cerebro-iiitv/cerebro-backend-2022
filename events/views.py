@@ -1,4 +1,4 @@
-from rest_framework.viewsets import ModelViewSet
+from rest_framework.viewsets import ReadOnlyModelViewSet, ModelViewSet
 from rest_framework.response import Response
 from rest_framework import status
 from rest_framework.permissions import AllowAny
@@ -9,10 +9,9 @@ from events.serializers import ContactSerializer, EventSerializer
 from registration.models import IndividualParticipation, TeamMember
 
 
-class EventViewSet(ModelViewSet):
+class EventViewSet(ReadOnlyModelViewSet):
     serializer_class = EventSerializer
     permission_classes = [AllowAny]
-    http_method_names = ["get"]
 
     def get_queryset(self):
         if self.request.GET.get("type") is not None:
@@ -22,7 +21,7 @@ class EventViewSet(ModelViewSet):
         return Event.objects.all().order_by("priority")
 
     def list(self, request, *args, **kwargs):
-        if not request.user.is_authenticated:
+        if not request.user.is_authenticated :
             return super().list(request, *args, **kwargs)
         else:
             events = self.get_queryset()
@@ -85,7 +84,6 @@ class EventViewSet(ModelViewSet):
 
 
             return Response(event_data, status = status.HTTP_200_OK)
-
 
 
 class ContactViewSet(ModelViewSet):

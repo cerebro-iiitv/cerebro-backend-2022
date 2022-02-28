@@ -28,7 +28,7 @@ class Team(models.Model):
     name = models.CharField(max_length=100, blank=False)
     team = models.CharField(max_length=100, choices=TEAM_CHOICES)
     role = models.CharField(max_length=100, blank=False, choices=ROLE_CHOICES)
-    profilepic = models.ImageField(upload_to="team-profilepics", blank=True)
+    profilepic = models.URLField(blank=True)
     portfolio = models.URLField(blank=True)
     github = models.URLField(blank=True)
     linked_in = models.URLField(blank=True)

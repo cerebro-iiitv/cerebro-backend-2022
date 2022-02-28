@@ -10,6 +10,7 @@ from django.contrib.auth.base_user import AbstractBaseUser
 from django.core.mail import send_mail
 from rest_framework_simplejwt.tokens import RefreshToken
 
+from docs.models import ProofPDF
 
 
 class Account(AbstractBaseUser, PermissionsMixin):
@@ -20,10 +21,10 @@ class Account(AbstractBaseUser, PermissionsMixin):
     email = models.EmailField(_('email address'), unique=True)
     is_staff = models.BooleanField(_('staff status'), default=False)
     mobile_number = models.CharField(max_length=13)
-    proof = models.URLField()
+    proof = models.OneToOneField(ProofPDF, on_delete=models.DO_NOTHING, null=True, blank=True)
     institute_name = models.CharField(max_length=225)
     address = models.CharField(max_length=225, blank=True, null=True)
-    degree = models.CharField(max_length=30)
+    degree = models.CharField(max_length=30, blank=True, null=True)
     
     USERNAME_FIELD = 'email'
     REQUIRED_FIELDS = []

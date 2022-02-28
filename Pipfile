@@ -17,6 +17,8 @@ whitenoise = "*"
 djangorestframework-simplejwt = "*"
 gunicorn = "*"
 django-heroku = "*"
+boto3 = "*"
+django-storages = "*"
 
 [dev-packages]
 
