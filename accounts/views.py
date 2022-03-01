@@ -65,7 +65,7 @@ class SignUpView(APIView):
         relativeLink = reverse('email-verify') 
         absurl = request_host + relativeLink + "?token=" + str(token)
         email_body = 'Hi ' + user_data['first_name'] + ',\n'\
-            'Click the link below to verify your email \n' + absurl
+            'Click the link below to verify your email \n' + absurl + " for Cerebro2022."
         data = {'email_body': email_body, 'to_email': useremail.email,
                 'email_subject': 'no-reply: Verify your Cerebro2022 account'}
 
