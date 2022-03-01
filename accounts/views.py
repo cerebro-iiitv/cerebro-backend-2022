@@ -63,11 +63,11 @@ class SignUpView(APIView):
         # Fetching the url of domain accessing the api
         request_host = request.headers.get("Origin", request.get_host())
         relativeLink = reverse('email-verify') 
-        absurl = 'http://' + request_host + relativeLink + "?token=" + str(token)
+        absurl = request_host + relativeLink + "?token=" + str(token)
         email_body = 'Hi ' + user_data['first_name'] + ',\n'\
             'Click the link below to verify your email \n' + absurl
         data = {'email_body': email_body, 'to_email': useremail.email,
-                'email_subject': 'Cerebro2022 | Verify your email'}
+                'email_subject': 'no-reply: Verify your Cerebro2022 account'}
 
         Util.send_email(data)
         return Response({"status": "User created successfully"}, status=status.HTTP_201_CREATED)
@@ -233,7 +233,7 @@ class RequestPasswordReset(generics.GenericAPIView):
             '\nIf you did not make this request then please ignore this email.' + \
             '\nOtherwise, use link below to reset your password  \n' + absurl
             data = {'email_body': email_body, 'to_email': user.email,
-                    'email_subject': 'Reset your passsword'}
+                    'email_subject': 'no-reply: Password reset link for Cerebro2022 account'}
             Util.send_email(data)
             
             return Response({'success': 'We have sent you a link to reset your password'}, status=status.HTTP_200_OK)
@@ -277,56 +277,4 @@ class ChangePasswordView(generics.UpdateAPIView):
 
             return Response(response)
 
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)        
-        
-    
-class GoogleLogin(APIView):
-    def post(self, request):
-        payload = {"access_token": request.data.get("Token")}
-        r = requests.get(
-            "https://www.googleapis.com/oauth2/v2/userinfo", params=payload
-        )
-        data = json.loads(r.text)
-
-        if "error" in data:
-            return Response(
-                {"error": "Invalid Google Token or this Token has already expired"},
-                status=status.HTTP_400_BAD_REQUEST,
-            )
-
-        try:
-            user = User.objects.get(email=data["email"])
-            try:
-                account = Account.objects.get(user=user)
-            except Account.DoesNotExist:
-                account = Account.objects.create(
-                    user=user,
-                    profile_pic=data["picture"],
-                )
-
-        except User.DoesNotExist:
-            data_dict = {
-                "username": data["email"],
-                "first_name": "",
-                "last_name": "",
-                "email": data["email"]
-            }
-            
-            if "given_name" in data.keys():
-                data_dict["first_name"] = data["given_name"]
-            
-            if "family_name" in data.keys():
-                data_dict["last_name"] = data["family_name"]
-            
-            user = User.objects.create(**data_dict)
-            account = Account.objects.create(
-                user=user,
-                profile_pic=data["picture"],
-            )
-
-        token = AuthToken.objects.create(user=user)
-        response = {}
-        response["email"] = user.email
-        response["user_id"] = account.id
-        response["access_token"] = str(token)
-        return Response(response, status=status.HTTP_200_OK)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
