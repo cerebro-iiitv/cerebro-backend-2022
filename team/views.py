@@ -18,6 +18,7 @@ class TeamViewSet(ReadOnlyModelViewSet):
             ("video-editing", "Video Editing"),
             ("pr", "PR"),
             ("gaming", "Gaming"),
+            ("sponsorship", "Sponsorship")
         ]
 
         data = dict()
