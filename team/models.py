@@ -3,9 +3,8 @@ from django.db import models
 
 ROLE_CHOICES = [
     ("President", "President"),
-    ("Student Convenor", "Student Convenor"),
+    ("Professor In Charge", "Professor In Charge"),
     ("Technical Lead", "Technical Lead"),
-    ("Technical Co-Lead", "Technical Co-Lead"),
     ("Convenor", "Convenor"),
     ("Head", "Head"),
     ("Co-Head", "Co-Head"),
@@ -20,6 +19,7 @@ TEAM_CHOICES = [
     ("video-editing", "Video Editing"),
     ("pr", "PR"),
     ("gaming", "Gaming"),
+    ("sponsorship", "Sponsorship")
 ]
 
 
