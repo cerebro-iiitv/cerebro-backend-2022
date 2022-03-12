@@ -309,7 +309,7 @@ class ParticipationDetails(APIView):
                         participation_data["Team Name"] = participation.team.team_name
                         participation_data["Team Code"] = participation.team.team_code
                         participation_data["Current Size"] = participation.team.current_size
-                        participation_data["Is Full"] = participation.is_full
+                        participation_data["Is Full"] = participation.team.is_full
                         participation_data["Team Captain"] = participation.team.team_captain.email
                         data.append(participation_data)
                     if len(data) == 0:
