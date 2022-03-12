@@ -6,6 +6,7 @@ from rest_framework.urlpatterns import format_suffix_patterns
 
 from registration.views import (
     IndividualRegistrationViewSet,
+    ParticipationDetails,
     TeamRegistrationViewSet,
     SubmissionViewset,
     TeamMemberViewSet
@@ -22,6 +23,7 @@ router.register("teammember", TeamMemberViewSet, basename="api-team-member")
 
 urlpatterns = [
     path("submission/", SubmissionViewset.as_view(), name="submission"),
+    path("csvgenerate/<str:event>", ParticipationDetails.as_view(), name="csv-generate"),
 ]
 
 # urlpatterns = [
