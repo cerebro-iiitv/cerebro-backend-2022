@@ -1,10 +1,14 @@
 import random
+import pandas as pd
+import csv
 
 from accounts.authentication import MultipleTokenAuthentication
+from django.http import HttpResponse
 from events.models import Event
 from rest_framework import generics, permissions, status
-from rest_framework.authentication import TokenAuthentication
+from rest_framework.authentication import BasicAuthentication
 from rest_framework.response import Response
+from rest_framework.views import APIView
 from rest_framework.viewsets import ModelViewSet
 
 from registration.models import (IndividualParticipation, TeamMember,
@@ -21,7 +25,7 @@ class IndividualRegistrationViewSet(ModelViewSet):
     serializer_class = IndividualParticipationSerializer
     queryset = IndividualParticipation.objects.all()
     permission_classes = [permissions.IsAuthenticated]
-    authentication_classes = [MultipleTokenAuthentication, TokenAuthentication]
+    authentication_classes = [MultipleTokenAuthentication]
 
     def create(self, request, *args, **kwargs):
 
@@ -61,12 +65,11 @@ class IndividualRegistrationViewSet(ModelViewSet):
         participant_serialized = IndividualParticipationSerializer(participant)
         return Response(participant_serialized.data, status=status.HTTP_201_CREATED)
     
-
 class TeamRegistrationViewSet(ModelViewSet):
     serializer_class = TeamParticipationSerializer
     queryset = TeamParticipation.objects.all()
     permission_classes = [permissions.IsAuthenticated]
-    authentication_classes = [MultipleTokenAuthentication, TokenAuthentication]
+    authentication_classes = [MultipleTokenAuthentication]
 
     def create(self, request, *args, **kwargs):
         serializer = self.serializer_class(data=request.data)
@@ -202,13 +205,12 @@ class SubmissionViewset(generics.GenericAPIView):
     def _get_user_teamCode(self, user, event_id):
         obj = TeamMember.objects.get(account_id = user.id, event_id = event_id)
         return obj.team.team_code
-            
          
 class TeamMemberViewSet(ModelViewSet):
     serializer_class = TeamMemberSerializer
     queryset = TeamMember.objects.all()
     permission_classes = [permissions.IsAuthenticated]
-    authentication_classes = [MultipleTokenAuthentication, TokenAuthentication]
+    authentication_classes = [MultipleTokenAuthentication]
 
     def create(self, request, *args, **kwargs):
         serializer = self.serializer_class(data=request.data)
@@ -273,3 +275,97 @@ class TeamMemberViewSet(ModelViewSet):
             status=status.HTTP_201_CREATED
         )
 
+class ParticipationDetails(APIView):
+    authentication_classes = [BasicAuthentication]
+    permission_classes = [permissions.IsAuthenticated]
+    
+    def get(self, request, *args, **kwargs):
+        if not (request.user.is_superuser or request.user.is_staff):
+            return Response({"error": "Access Denied"}, status=status.HTTP_403_FORBIDDEN)
+        else:
+            short_name = kwargs.get("event", None)
+
+            if short_name:
+                short_name = short_name.upper()
+                try:
+                    event = Event.objects.get(short_name = short_name)
+                except Event.DoesNotExist:
+                    return Response({"error": "Invalid event name"}, status=status.HTTP_400_BAD_REQUEST)
+
+                if event.team_event:
+                    team_participations = TeamMember.objects.filter(event=event).order_by("team")
+                    data = []
+                    for participation in team_participations:
+                        participation_data = {}
+                        participation_data["First Name"] = participation.account.first_name
+                        participation_data["Last Name"] = participation.account.last_name
+                        participation_data["Email"] = participation.account.email
+                        participation_data["Mobile Number"] = participation.account.mobile_number
+                        participation_data["Institute"] = participation.account.institute_name
+                        participation_data["Degree"] = participation.account.degree
+                        participation_data["Address"] = participation.account.address
+                        participation_data["Registration Data"] = participation.registration_data
+                        participation_data["Submission Data"] = participation.team.submission_data
+                        participation_data["Team Name"] = participation.team.team_name
+                        participation_data["Team Code"] = participation.team.team_code
+                        participation_data["Current Size"] = participation.team.current_size
+                        participation_data["Is Full"] = participation.is_full
+                        participation_data["Team Captain"] = participation.team.team_captain.email
+                        data.append(participation_data)
+                    if len(data) == 0:
+                        df = pd.DataFrame(
+                            data,
+                            columns = ([
+                                "First Name", 
+                                "Last Name", 
+                                "Email", 
+                                "Mobile NUmber", 
+                                "Institute", 
+                                "Registration Data", 
+                                "Submission Data",
+                                "Team Name",
+                                "Team Code",
+                                "Current Size",
+                                "Is Full",
+                                "Team Captain"
+                            ])
+                        )
+                    else:
+                        df = pd.DataFrame(data)
+                else:
+                    individual_participations = IndividualParticipation.objects.filter(event=event)
+                    data = []
+                    for participation in individual_participations:
+                        participation_data = {}
+                        participation_data["First Name"] = participation.account.first_name
+                        participation_data["Last Name"] = participation.account.last_name
+                        participation_data["Email"] = participation.account.email
+                        participation_data["Mobile Number"] = participation.account.mobile_number
+                        participation_data["Institute"] = participation.account.institute_name
+                        participation_data["Degree"] = participation.account.degree
+                        participation_data["Address"] = participation.account.address
+                        participation_data["Registration Data"] = participation.registration_data
+                        participation_data["Submission Data"] = participation.submission_data
+                        data.append(participation_data)
+                    if len(data) == 0:
+                        df = pd.DataFrame(
+                            data,
+                            columns = ([
+                                "First Name", 
+                                "Last Name", 
+                                "Email", 
+                                "Mobile NUmber", 
+                                "Institute", 
+                                "Registration Data", 
+                                "Submission Data"
+                            ])
+                        )
+                    else:
+                        df = pd.DataFrame(data)
+
+                response = HttpResponse(content_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
+                response["Content-Disposition"] = "attachment; filename=participants.xlsx"
+                df.to_excel(response)    
+                return response
+            else:
+                return Response({"error": "Invalid event name"}, status=status.HTTP_400_BAD_REQUEST)
