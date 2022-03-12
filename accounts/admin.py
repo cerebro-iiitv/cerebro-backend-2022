@@ -6,15 +6,15 @@ class AccountAdmin(admin.ModelAdmin):
     list_display = (
         "id",
         "mobile_number",
-	"email",
+	    "email",
     )
     list_display_links = (
         "id",
         "mobile_number",
-	"email",
+	    "email",
     )
 
-    search_fields = ("user", "mobile_number", "email")
+    search_fields = ("mobile_number", "email")
 
 
 class AuthTokenAdmin(admin.ModelAdmin):
