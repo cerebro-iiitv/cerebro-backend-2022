@@ -15,6 +15,7 @@ django-storages = "*"
 whitenoise = "*"
 pillow = "*"
 pandas = "*"
+openpyxl = "*"
 
 [dev-packages]
 
