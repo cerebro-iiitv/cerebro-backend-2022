@@ -10,17 +10,17 @@ from accounts.managers import AccountManager
 
 
 class Account(AbstractBaseUser, PermissionsMixin):
-    first_name = models.CharField(_('first name'), max_length=30)
-    last_name = models.CharField(_('last name'), max_length=30)
+    first_name = models.CharField(_('first name'), max_length=1000)
+    last_name = models.CharField(_('last name'), max_length=1000)
     is_active = models.BooleanField(_('active'), default=True)
     is_verified = models.BooleanField(default=False)
     email = models.EmailField(_('email address'), unique=True)
     is_staff = models.BooleanField(_('staff status'), default=False)
     mobile_number = models.CharField(max_length=13)
     proof = models.OneToOneField(ProofPDF, on_delete=models.DO_NOTHING, null=True, blank=True)
-    institute_name = models.CharField(max_length=225)
-    address = models.CharField(max_length=225, blank=True, null=True)
-    degree = models.CharField(max_length=30, blank=True, null=True)
+    institute_name = models.CharField(max_length=1000)
+    address = models.CharField(max_length=1000, blank=True, null=True)
+    degree = models.CharField(max_length=1000, blank=True, null=True)
     
     USERNAME_FIELD = 'email'
     REQUIRED_FIELDS = []
