@@ -23,7 +23,7 @@ router.register("teammember", TeamMemberViewSet, basename="api-team-member")
 
 urlpatterns = [
     path("submission/", SubmissionViewset.as_view(), name="submission"),
-    path("csvgenerate/<str:event>", ParticipationDetails.as_view(), name="csv-generate"),
+    path("excelgenerate/<str:event>", ParticipationDetails.as_view(), name="excel-generate"),
 ]
 
 # urlpatterns = [
