@@ -1,6 +1,8 @@
+import pandas as pd
+
 from django.contrib.auth import authenticate, login
 from django.contrib.auth.tokens import PasswordResetTokenGenerator
-from django.http import HttpResponsePermanentRedirect
+from django.http import HttpResponsePermanentRedirect, HttpResponse
 from django.shortcuts import render
 from django.urls import reverse
 from django.utils.encoding import (DjangoUnicodeDecodeError, force_str,
@@ -8,6 +10,7 @@ from django.utils.encoding import (DjangoUnicodeDecodeError, force_str,
 from django.utils.http import urlsafe_base64_decode, urlsafe_base64_encode
 from registration.models import (IndividualParticipation, TeamMember,
                                  TeamParticipation)
+from rest_framework.authentication import BasicAuthentication
 from rest_framework import generics, permissions, status
 from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
@@ -276,3 +279,38 @@ class ChangePasswordView(generics.UpdateAPIView):
             return Response(response)
 
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+class AccountCsvView(APIView):
+    authentication_classes = [BasicAuthentication]
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get(self, request, *args, **kwargs):
+        if not (request.user.is_superuser):
+            return Response(
+                {
+                    "error": "Access denied"
+                },
+                status=status.HTTP_401_UNAUTHORIZED
+            )
+        else:
+            accounts = Account.objects.all().order_by("institute_name")
+            data = AccountSerializer(accounts, many=True).data
+            if len(data) == 0:
+                df = pd.DataFrame(
+                    data,
+                    columns = ([
+                        "First Name",
+                        "Last Name",
+                        "Email",
+                        "Mobile Number",
+                        "Institute",
+                        "Address",
+                        "Degree"
+                    ])
+                )
+            else:
+                df = pd.DataFrame(data)
+                response = HttpResponse(content_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
+                response["Content-Disposition"] = "attachment; filename=participants.xlsx"
+                df.to_excel(response)    
+                return response
