@@ -19,6 +19,7 @@ urlpatterns = [
          name='password-reset-complete'),
     path('change-password/', views.ChangePasswordView.as_view(), name='change-password'),
     path('dashboard/', views.DashboardView.as_view(), name="dashboard"),
+    path('accountcsv/', views.AccountCsvView.as_view(), name="accountcsv")
 ]
 
 urlpatterns = format_suffix_patterns(urlpatterns)
