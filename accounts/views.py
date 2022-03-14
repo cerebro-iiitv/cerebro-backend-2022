@@ -285,7 +285,7 @@ class AccountCsvView(APIView):
     permission_classes = [permissions.IsAuthenticated]
 
     def get(self, request, *args, **kwargs):
-        if not (request.user.is_superuser or request.user.is_staff):
+        if not (request.user.is_superuser):
             return Response(
                 {
                     "error": "Access denied"
