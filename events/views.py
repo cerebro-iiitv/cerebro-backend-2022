@@ -45,6 +45,7 @@ class EventViewSet(ReadOnlyModelViewSet):
                         team_member = TeamMember.objects.get(event=event, account=request.user)
                         data[1]["is_registered"] = True
                         data[1]["team_code"] = team_member.team.team_code
+                        data[1]["team_full"] = team_member.team.is_full
                         if team_member.team.submission_data is not None:
                             data[1]["submitted"] = True
                         else:
@@ -76,6 +77,7 @@ class EventViewSet(ReadOnlyModelViewSet):
                     team_member = TeamMember.objects.get(event=event, account=request.user)
                     event_data["is_registered"] = True
                     event_data["team_code"] = team_member.team.team_code
+                    event_data["team_full"] = team_member.team.is_full
                     if team_member.team.submission_data is not None:
                         event_data["submitted"] = True
                     else:
