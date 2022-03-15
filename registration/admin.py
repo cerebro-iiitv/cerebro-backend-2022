@@ -18,7 +18,8 @@ class TeamMemberAdmin(admin.ModelAdmin):
     search_fields = (
         "event__title",
         "team__team_code",
-        "account__user__email",
+	"team__team_name",
+        "account__email",
     )
 
 
