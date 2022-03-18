@@ -304,10 +304,7 @@ class ParticipationDetails(APIView):
                         participation_data["Institute"] = participation.account.institute_name
                         participation_data["Degree"] = participation.account.degree
                         participation_data["Address"] = participation.account.address
-                        if participation.account.proof is not None:
-                            participation_data["Proff Pdf"] = participation.account.proof.pdf.url
-                        else:
-                            participation_data["Proff Pdf"] = None
+                        participation_data["Proff Pdf"] = participation.account.proof.pdf.url
                         participation_data["Registration Data"] = participation.registration_data
                         participation_data["Submission Data"] = participation.team.submission_data
                         participation_data["Team Name"] = participation.team.team_name
@@ -348,10 +345,7 @@ class ParticipationDetails(APIView):
                         participation_data["Institute"] = participation.account.institute_name
                         participation_data["Degree"] = participation.account.degree
                         participation_data["Address"] = participation.account.address
-                        if participation.account.proof is not None:
-                            participation_data["Proff Pdf"] = participation.account.proof.pdf.url
-                        else:
-                            participation_data["Proff Pdf"] = None
+                        participation_data["Proff Pdf"] = participation.account.proof.pdf.url
                         participation_data["Registration Data"] = participation.registration_data
                         participation_data["Submission Data"] = participation.submission_data
                         data.append(participation_data)
