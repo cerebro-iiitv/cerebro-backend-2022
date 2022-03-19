@@ -1,3 +1,4 @@
+from multiprocessing.sharedctypes import Value
 import random
 import pandas as pd
 import csv
@@ -289,6 +290,14 @@ class ParticipationDetails(APIView):
                 short_name = short_name.upper()
                 try:
                     event = Event.objects.get(short_name = short_name)
+                    if event.registration_attributes:
+                        registration_attributes = event.registration_attributes.keys()
+                    else:
+                        registration_attributes = list()
+                    if event.submission_attributes:
+                        submission_attributes = event.submission_attributes.keys()
+                    else:
+                        submission_attributes = list()
                 except Event.DoesNotExist:
                     return Response({"error": "Invalid event name"}, status=status.HTTP_400_BAD_REQUEST)
 
@@ -305,8 +314,10 @@ class ParticipationDetails(APIView):
                         participation_data["Degree"] = participation.account.degree
                         participation_data["Address"] = participation.account.address
                         participation_data["Proff Pdf"] = participation.account.proof.pdf.url
-                        participation_data["Registration Data"] = participation.registration_data
-                        participation_data["Submission Data"] = participation.team.submission_data
+                        for key in registration_attributes:
+                            participation_data[key] = participation.registration_data[key]
+                        for key in submission_attributes:
+                            participation_data[key] = participation.team.submission_data[key]
                         participation_data["Team Name"] = participation.team.team_name
                         participation_data["Team Code"] = participation.team.team_code
                         participation_data["Current Size"] = participation.team.current_size
@@ -328,7 +339,9 @@ class ParticipationDetails(APIView):
                                 "Team Code",
                                 "Current Size",
                                 "Is Full",
-                                "Team Captain"
+                                "Team Captain",
+                                *registration_attributes,
+                                *submission_attributes
                             ])
                         )
                     else:
@@ -346,8 +359,13 @@ class ParticipationDetails(APIView):
                         participation_data["Degree"] = participation.account.degree
                         participation_data["Address"] = participation.account.address
                         participation_data["Proff Pdf"] = participation.account.proof.pdf.url
-                        participation_data["Registration Data"] = participation.registration_data
-                        participation_data["Submission Data"] = participation.submission_data
+                        for key in registration_attributes:
+                            participation_data[key] = participation.registration_data[key]
+                        for key in submission_attributes:
+                            if participation.submission_data is not None:
+                                participation_data[key] = participation.submission_data[key]
+                            else:
+                                participation_data[key] = None
                         data.append(participation_data)
                     if len(data) == 0:
                         df = pd.DataFrame(
@@ -358,8 +376,8 @@ class ParticipationDetails(APIView):
                                 "Email", 
                                 "Mobile NUmber", 
                                 "Institute", 
-                                "Registration Data", 
-                                "Submission Data"
+                                *registration_attributes, 
+                                *submission_attributes
                             ])
                         )
                     else:
