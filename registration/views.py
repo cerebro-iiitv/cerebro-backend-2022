@@ -317,7 +317,10 @@ class ParticipationDetails(APIView):
                         for key in registration_attributes:
                             participation_data[key] = participation.registration_data[key]
                         for key in submission_attributes:
-                            participation_data[key] = participation.team.submission_data[key]
+                            if participation.team.submission_data is not None:
+                                participation_data[key] = participation.team.submission_data[key]
+                            else:
+                                participation_data[key] = None
                         participation_data["Team Name"] = participation.team.team_name
                         participation_data["Team Code"] = participation.team.team_code
                         participation_data["Current Size"] = participation.team.current_size
